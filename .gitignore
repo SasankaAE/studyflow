@@ -33,4 +33,9 @@ pnpm-debug.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
+
+# local env overrides
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
