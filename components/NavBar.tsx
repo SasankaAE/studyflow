@@ -19,10 +19,10 @@ import { Menu } from "lucide-react"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 const navLinks = [
-  { label: "Features", href: "/" },
-  { label: "How it works", href: "/" },
-  { label: "Pricing", href: "/" },
-  { label: "FAQ", href: "/" },
+  { label: "Features", href: "#features" },
+  { label: "How it works", href: "#how-it-works" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "FAQ", href: "#faq" },
 ]
 
 export function Navbar() {
