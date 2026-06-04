@@ -1,9 +1,9 @@
 // app/login/page.tsx
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
 import {
   Card,
   CardContent,
@@ -11,13 +11,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { GitBranch } from "lucide-react";
+} from "@/components/ui/card"
+import { GitBranch } from "lucide-react"
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
-
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       {/* Background grid */}
       <div
         className="pointer-events-none fixed inset-0 -z-10"
@@ -30,13 +29,15 @@ export default function LoginPage() {
           backgroundSize: "100% 100%, 48px 48px, 48px 48px",
         }}
       />
-      <div className="pointer-events-none fixed top-0 left-1/2 -translate-x-1/2 h-[320px] w-[520px] rounded-full bg-primary/10 blur-3xl -z-10" />
+      <div className="pointer-events-none fixed top-0 left-1/2 -z-10 h-[320px] w-[520px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
 
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1 text-center">
-
           {/* Logo */}
-          <Link href="/" className="flex items-center justify-center gap-2 mb-2">
+          <Link
+            href="/"
+            className="mb-2 flex items-center justify-center gap-2"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -49,7 +50,9 @@ export default function LoginPage() {
             >
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
-            <span className="text-lg font-semibold tracking-tight">StudyFlow</span>
+            <span className="text-lg font-semibold tracking-tight">
+              StudyFlow
+            </span>
           </Link>
 
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
@@ -59,7 +62,6 @@ export default function LoginPage() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-
           {/* OAuth Buttons */}
           <div className="grid grid-cols-2 gap-3">
             <Button variant="outline" className="w-full gap-2">
@@ -92,7 +94,7 @@ export default function LoginPage() {
 
           <div className="relative">
             <Separator />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
+            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
               or continue with email
             </span>
           </div>
@@ -113,7 +115,7 @@ export default function LoginPage() {
               <Label htmlFor="password">Password</Label>
               <Link
                 href="/forgot-password"
-                className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                className="text-xs text-muted-foreground transition-colors hover:text-primary"
               >
                 Forgot password?
               </Link>
@@ -127,9 +129,8 @@ export default function LoginPage() {
           </div>
 
           <Button className="w-full" size="lg">
-            Sign in
+            <Link href="/dashboard">Login in</Link>
           </Button>
-
         </CardContent>
 
         <CardFooter className="justify-center">
@@ -137,14 +138,13 @@ export default function LoginPage() {
             Don&apos;t have an account?{" "}
             <Link
               href="/signup"
-              className="font-medium text-primary hover:underline underline-offset-4"
+              className="font-medium text-primary underline-offset-4 hover:underline"
             >
               Sign up for free
             </Link>
           </p>
         </CardFooter>
       </Card>
-
     </div>
-  );
+  )
 }
