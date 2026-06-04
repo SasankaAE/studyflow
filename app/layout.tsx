@@ -1,29 +1,30 @@
-import { Geist, Geist_Mono, Inter } from "next/font/google"
-
+import { Geist_Mono, Inter } from "next/font/google"
+import type { Metadata } from "next"
 import "./globals.css"
-import { ThemeProvider } from "../components/theme-provider"
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'})
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 })
 
+export const metadata: Metadata = {
+  title: "StudyFlow",
+}
+
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
+      className={cn("dark antialiased", fontMono.variable, inter.variable)}
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", inter.variable)}
     >
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
+      <body className="bg-background text-foreground">
+        {children}
       </body>
     </html>
   )

@@ -1,9 +1,14 @@
+"use client"
+
 // app/login/page.tsx
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { createClient } from "@/lib/supabase/client"
 import {
   Card,
   CardContent,
@@ -15,6 +20,49 @@ import {
 import { GitBranch } from "lucide-react"
 
 export default function LoginPage() {
+  const router = useRouter()
+  const supabase = createClient()
+
+  const [form, setForm] = useState({ email: "", password: "" })
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }))
+  }
+
+  const handleSubmit = async () => {
+    setError(null)
+
+    if (!form.email || !form.password) {
+      setError("Email and Password are required")
+      return
+    }
+
+    setLoading(true)
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: form.email,
+      password: form.password,
+    })
+
+    setLoading(false)
+
+    if (error) {
+      setError(error.message)
+      return
+    }
+
+    router.push("/dashboard")
+  }
+
+  const handleOAuth = async (provider: "google" | "github") => {
+    await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${location.origin}/auth/callback` },
+    })
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       {/* Background grid */}
@@ -64,7 +112,11 @@ export default function LoginPage() {
         <CardContent className="space-y-4">
           {/* OAuth Buttons */}
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" className="w-full gap-2">
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() => handleOAuth("google")}
+            >
               {/* Google icon */}
               <svg className="h-4 w-4" viewBox="0 0 24 24">
                 <path
@@ -86,7 +138,11 @@ export default function LoginPage() {
               </svg>
               Google
             </Button>
-            <Button variant="outline" className="w-full gap-2">
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() => handleOAuth("github")}
+            >
               <GitBranch className="h-4 w-4" />
               GitHub
             </Button>
@@ -107,6 +163,8 @@ export default function LoginPage() {
               type="email"
               placeholder="you@example.com"
               autoComplete="email"
+              value={form.email}
+              onChange={handleChange}
             />
           </div>
 
@@ -125,11 +183,17 @@ export default function LoginPage() {
               type="password"
               placeholder="••••••••"
               autoComplete="current-password"
+              value={form.password}
+              onChange={handleChange}
             />
           </div>
 
-          <Button className="w-full" size="lg">
-            <Link href="/dashboard">Login in</Link>
+          {error && (
+            <p className="text-center text-sm text-destructive">{error}</p>
+          )}
+
+          <Button className="w-full" size="lg" onClick={handleSubmit} disabled={loading}>
+            {loading ? "Logging in..." : "Log in"}
           </Button>
         </CardContent>
 

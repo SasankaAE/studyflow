@@ -1,9 +1,14 @@
+"use client"
+
 // app/signup/page.tsx
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
+import { createClient } from "@/lib/supabase/client"
 import {
   Card,
   CardContent,
@@ -11,18 +16,71 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { GitBranch } from "lucide-react";
+} from "@/components/ui/card"
+import { GitBranch } from "lucide-react"
 
 export default function SignupPage() {
-  return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-background">
+  const router = useRouter()
+  const supabase = createClient()
 
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  })
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }))
+  }
+
+  const handleSubmit = async () => {
+    setError(null)
+
+    if (!form.firstName || !form.lastName || !form.email || !form.password) {
+      setError("All fields are required.")
+      return
+    }
+    if (form.password.length < 8) {
+      setError("Password must be at least 8 characters.")
+      return
+    }
+
+    setLoading(true)
+
+    const { error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: {
+        data: { full_name: `${form.firstName} ${form.lastName}` },
+      },
+    })
+
+    setLoading(false)
+
+    if (error) {
+      setError(error.message)
+      return
+    }
+
+    router.push("/dashboard")
+  }
+
+  const handleOAuth = async (provider: "google" | "github") => {
+    await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${location.origin}/auth/callback` },
+    })
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       {/* Background glow */}
-      <div className="pointer-events-none fixed top-0 left-1/2 -translate-x-1/2 h-[400px] w-[600px] rounded-full bg-primary/8 blur-3xl -z-10" />
+      <div className="pointer-events-none fixed top-0 left-1/2 -z-10 h-[400px] w-[600px] -translate-x-1/2 rounded-full bg-primary/8 blur-3xl" />
 
       <div className="w-full max-w-md space-y-6">
-
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2">
           <svg
@@ -37,12 +95,14 @@ export default function SignupPage() {
           >
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
           </svg>
-          <span className="text-xl font-semibold tracking-tight">StudyFlow</span>
+          <span className="text-xl font-semibold tracking-tight">
+            StudyFlow
+          </span>
         </Link>
 
         <Card className="border-border/60 shadow-xl">
           <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-2xl font-bold text-center">
+            <CardTitle className="text-center text-2xl font-bold">
               Create an account
             </CardTitle>
             <CardDescription className="text-center">
@@ -51,9 +111,13 @@ export default function SignupPage() {
           </CardHeader>
 
           <CardContent className="space-y-4">
-
             {/* OAuth Buttons */}
-            <Button variant="outline" className="w-full gap-2" type="button">
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              type="button"
+              onClick={() => handleOAuth("google")}
+            >
               <svg className="h-4 w-4" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -75,14 +139,19 @@ export default function SignupPage() {
               Continue with Google
             </Button>
 
-            <Button variant="outline" className="w-full gap-2" type="button">
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              type="button"
+              onClick={() => handleOAuth("github")}
+            >
               <GitBranch className="h-4 w-4" />
               Continue with GitHub
             </Button>
 
             <div className="relative">
               <Separator />
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
+              <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
                 or continue with email
               </span>
             </div>
@@ -91,40 +160,76 @@ export default function SignupPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="first-name">First name</Label>
-                <Input id="first-name" placeholder="John" />
+                <Input
+                  id="firstName"
+                  placeholder="John"
+                  value={form.firstName}
+                  onChange={handleChange}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="last-name">Last name</Label>
-                <Input id="last-name" placeholder="Doe" />
+                <Input
+                  id="lastName"
+                  placeholder="Doe"
+                  value={form.lastName}
+                  onChange={handleChange}
+                />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="john@example.com" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="john@example.com"
+                value={form.email}
+                onChange={handleChange}
+              />
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="Min. 8 characters" />
+              <Input
+                id="password"
+                type="password"
+                placeholder="Min. 8 characters"
+                value={form.password}
+                onChange={handleChange}
+              />
             </div>
 
-            <Button className="w-full" size="lg">
-              Create account
+            {error && (
+              <p className="text-center text-sm text-destructive">{error}</p>
+            )}
+
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? "Creating Acoount" : "Create Account"}
             </Button>
 
-            <p className="text-xs text-center text-muted-foreground">
+            <p className="text-center text-xs text-muted-foreground">
               By signing up, you agree to our{" "}
-              <Link href="/terms" className="underline underline-offset-4 hover:text-foreground transition-colors">
+              <Link
+                href="/terms"
+                className="underline underline-offset-4 transition-colors hover:text-foreground"
+              >
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link href="/privacy" className="underline underline-offset-4 hover:text-foreground transition-colors">
+              <Link
+                href="/privacy"
+                className="underline underline-offset-4 transition-colors hover:text-foreground"
+              >
                 Privacy Policy
               </Link>
               .
             </p>
-
           </CardContent>
 
           <CardFooter className="justify-center border-t pt-4">
@@ -132,15 +237,14 @@ export default function SignupPage() {
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="font-medium text-foreground underline underline-offset-4 hover:text-primary transition-colors"
+                className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary"
               >
                 Log in
               </Link>
             </p>
           </CardFooter>
         </Card>
-
       </div>
     </div>
-  );
+  )
 }
