@@ -67,7 +67,7 @@ export default function ChatPage() {
               <Settings2 className="h-4 w-4" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-80 p-0">
+          <SheetContent side="right" className="w-80 p-0" aria-describedby={undefined}>
             <VisuallyHidden>
               <SheetTitle>Chat Settings</SheetTitle>
             </VisuallyHidden>

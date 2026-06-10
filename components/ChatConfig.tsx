@@ -14,13 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface ChatConfigProps {
   config: OpenRouterConfig;
@@ -35,7 +28,7 @@ export function ChatConfig({ config, onChange, onClear }: ChatConfigProps) {
   const reset = () => onChange(DEFAULT_CONFIG);
 
   return (
-    <aside className="flex flex-col gap-5 p-4 bg-background border-r border-border w-72 shrink-0 overflow-y-auto">
+    <aside className="flex h-full w-full max-w-sm flex-col gap-6 overflow-y-auto border-l border-border bg-background p-6">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-sm text-foreground">Chat Settings</h2>
         <Button variant="ghost" size="sm" onClick={reset} className="h-auto p-0 text-xs text-muted-foreground">
@@ -82,15 +75,18 @@ export function ChatConfig({ config, onChange, onClear }: ChatConfigProps) {
           <Label className="text-xs uppercase tracking-wide text-muted-foreground">
             Temperature
           </Label>
-          <span className="text-xs font-mono text-foreground">{config.temperature.toFixed(1)}</span>
+          <span className="text-xs font-mono tabular-nums">{config.temperature.toFixed(1)}</span>
         </div>
-        <Slider
-          min={0}
-          max={2}
-          step={0.1}
-          value={[config.temperature]}
-          onValueChange={([val]) => update("temperature", val)}
-        />
+        <div className="w-full px-1">
+          <Slider
+            min={0}
+            max={2}
+            step={0.1}
+            value={[config.temperature]}
+            onValueChange={([val]) => update("temperature", val)}
+            className="w-full"
+          />
+        </div>
         <div className="flex justify-between text-[10px] text-muted-foreground">
           <span>Precise</span>
           <span>Creative</span>
@@ -103,15 +99,18 @@ export function ChatConfig({ config, onChange, onClear }: ChatConfigProps) {
           <Label className="text-xs uppercase tracking-wide text-muted-foreground">
             Max Tokens
           </Label>
-          <span className="text-xs font-mono text-foreground">{config.maxTokens}</span>
+          <span className="text-xs font-mono tabular-nums">{config.maxTokens}</span>
         </div>
-        <Slider
-          min={256}
-          max={4096}
-          step={256}
-          value={[config.maxTokens]}
-          onValueChange={([val]) => update("maxTokens", val)}
-        />
+        <div className="w-full px-1">
+          <Slider
+            min={256}
+            max={4096}
+            step={256}
+            value={[config.maxTokens]}
+            onValueChange={([val]) => update("maxTokens", val)}
+            className="w-full"
+          />
+        </div>
       </div>
 
       {/* Streaming */}
