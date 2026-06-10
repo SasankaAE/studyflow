@@ -1,142 +1,165 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { TrendingUp, MessageSquare, FileDown, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+"use client"
 
-const stats = [
-  {
-    label: "Total Chats",
-    value: "128",
-    delta: "+12 this week",
-    icon: MessageSquare,
-    trend: "up",
-  },
-  {
-    label: "Papers Downloaded",
-    value: "47",
-    delta: "+5 this week",
-    icon: FileDown,
-    trend: "up",
-  },
-  {
-    label: "Avg. Response",
-    value: "1.4s",
-    delta: "-0.2s improved",
-    icon: Clock,
-    trend: "up",
-  },
-  {
-    label: "Usage",
-    value: "68%",
-    delta: "of monthly plan",
-    icon: TrendingUp,
-    trend: "mid",
-  },
-]
-
-const recentActivity = [
-  { title: "Chat: Explain quantum computing", time: "2 min ago", type: "chat" },
-  {
-    title: "Downloaded: ML Research 2024.pdf",
-    time: "1 hr ago",
-    type: "paper",
-  },
-  { title: "Chat: Summarize this document", time: "3 hr ago", type: "chat" },
-  { title: "Downloaded: NLP Advances.pdf", time: "Yesterday", type: "paper" },
-  { title: "Chat: Write a Python script", time: "Yesterday", type: "chat" },
-]
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { MessageSquare, FileDown, Clock, TrendingUp } from "lucide-react"
 
 export default function OverviewPage() {
+  const supabase = createClient()
+
+  const [stats, setStats] = useState({
+    totalChats: 0,
+    chatsThisWeek: 0,
+    papersDownloaded: 0,
+    papersThisWeek: 0,
+  })
+  const [activity, setActivity] = useState<
+    { id: string; title: string; type: string; created_at: string }[]
+  >([])
+  const [loading, setLoading] = useState(true)
+
+  const loadData = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return
+
+    const weekAgo = new Date()
+    weekAgo.setDate(weekAgo.getDate() - 7)
+    const weekAgoISO = weekAgo.toISOString()
+
+    const [{ data: allLogs }, { data: recentLogs }] = await Promise.all([
+      supabase.from("activity_log").select("type").eq("user_id", user.id),
+      supabase
+        .from("activity_log")
+        .select("type")
+        .eq("user_id", user.id)
+        .gte("created_at", weekAgoISO),
+    ])
+
+    const { data: activityRows } = await supabase
+      .from("activity_log")
+      .select("id, title, type, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(10)
+
+    setStats({
+      totalChats: allLogs?.filter((r) => r.type === "chat").length ?? 0,
+      chatsThisWeek: recentLogs?.filter((r) => r.type === "chat").length ?? 0,
+      papersDownloaded: allLogs?.filter((r) => r.type === "paper").length ?? 0,
+      papersThisWeek: recentLogs?.filter((r) => r.type === "paper").length ?? 0,
+    })
+    setActivity(activityRows ?? [])
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    loadData()
+
+    // realtime subscription
+    const channel = supabase
+      .channel("activity_log_changes")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "activity_log" },
+        () => loadData()
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
+  const statCards = [
+    {
+      label: "Total Chats",
+      value: stats.totalChats,
+      delta: `+${stats.chatsThisWeek} this week`,
+      icon: MessageSquare,
+    },
+    {
+      label: "Papers Downloaded",
+      value: stats.papersDownloaded,
+      delta: `+${stats.papersThisWeek} this week`,
+      icon: FileDown,
+    },
+    {
+      label: "Avg. Response",
+      value: "1.4s",
+      delta: "-0.2s improved",
+      icon: Clock,
+    },
+    {
+      label: "Usage",
+      value: `${Math.min(Math.round(((stats.totalChats + stats.papersDownloaded) / 200) * 100), 100)}%`,
+      delta: "of monthly plan",
+      icon: TrendingUp,
+    },
+  ]
+
+  function timeAgo(iso: string) {
+    const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
+    if (diff < 60) return `${diff}s ago`
+    if (diff < 3600) return `${Math.floor(diff / 60)} min ago`
+    if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`
+    return "Yesterday"
+  }
+
+  // paste your existing JSX below, swap static values with live ones:
   return (
     <div className="space-y-6 p-6">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map(({ label, value, delta, icon: Icon }) => (
-          <Card key={label}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardDescription className="text-xs font-medium">
-                {label}
-              </CardDescription>
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {statCards.map(({ label, value, delta, icon: Icon }) => (
+          <div
+            key={label}
+            className="space-y-2 rounded-lg border border-border bg-card p-4"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">{label}</p>
               <Icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold tracking-tight">{value}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{delta}</p>
-            </CardContent>
-          </Card>
+            </div>
+            <p className="text-2xl font-semibold">{loading ? "—" : value}</p>
+            <p className="text-xs text-muted-foreground">{delta}</p>
+          </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Recent Activity */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold">
-              Recent Activity
-            </CardTitle>
-            <CardDescription>
-              Your latest actions across the platform
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {recentActivity.map((item, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 border-b border-border/50 py-2 last:border-0"
+      {/* Recent activity */}
+      <div className="rounded-lg border border-border bg-card">
+        <div className="border-b border-border px-4 py-3">
+          <p className="text-sm font-medium">Recent activity</p>
+        </div>
+        {loading ? (
+          <p className="p-4 text-sm text-muted-foreground">Loading…</p>
+        ) : activity.length === 0 ? (
+          <p className="p-4 text-sm text-muted-foreground">No activity yet.</p>
+        ) : (
+          <ul>
+            {activity.map((item, i) => (
+              <li
+                key={item.id}
+                className={`flex items-center justify-between px-4 py-3 text-sm ${
+                  i !== activity.length - 1 ? "border-b border-border" : ""
+                }`}
               >
-                <div
-                  className={`h-2 w-2 shrink-0 rounded-full ${item.type === "chat" ? "bg-primary" : "bg-emerald-500"}`}
-                />
-                <p className="flex-1 truncate text-sm">{item.title}</p>
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {item.time}
-                </span>
-                <Badge variant="outline" className="shrink-0 text-xs">
-                  {item.type}
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Plan Usage */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold">Plan Usage</CardTitle>
-            <CardDescription>Free plan · resets in 12 days</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            {[
-              { label: "AI Messages", used: 128, total: 200, pct: 64 },
-              { label: "Downloads", used: 47, total: 50, pct: 94 },
-              { label: "Storage", used: 1.2, total: 5, pct: 24, unit: "GB" },
-            ].map(({ label, used, total, pct, unit }) => (
-              <div key={label} className="space-y-1.5">
-                <div className="flex justify-between text-xs">
-                  <span className="font-medium">{label}</span>
-                  <span className="text-muted-foreground">
-                    {used}
-                    {unit ?? ""} / {total}
-                    {unit ?? ""}
-                  </span>
+                <div className="flex items-center gap-3">
+                  {item.type === "chat" ? (
+                    <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  ) : (
+                    <FileDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  )}
+                  <span className="max-w-xs truncate">{item.title}</span>
                 </div>
-                <Progress value={pct} className="h-1.5" />
-              </div>
+                <span className="ml-4 shrink-0 text-xs text-muted-foreground">
+                  {timeAgo(item.created_at)}
+                </span>
+              </li>
             ))}
-            <Button className="w-full" size="lg">
-              <Link href="/">Upgrade to Pro</Link>
-            </Button>
-            {/* <Badge className="mt-2 w-full justify-center">Upgrade to Pro</Badge> */}
-          </CardContent>
-        </Card>
+          </ul>
+        )}
       </div>
     </div>
   )

@@ -1,35 +1,106 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { User, Bell, Shield, Palette } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { User, Shield, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
 export default function SettingsPage() {
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: false,
-    weekly: true,
-  });
+  const router = useRouter()
+  const supabase = createClient()
+
+  const [profile, setProfile] = useState({ firstName: "", lastName: "", email: "" })
+  const [passwords, setPasswords] = useState({ current: "", next: "", confirm: "" })
+  const [loadingProfile, setLoadingProfile] = useState(true)
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [savingPassword, setSavingPassword] = useState(false)
+  const [deletingAccount, setDeletingAccount] = useState(false)
+  const [profileMsg, setProfileMsg] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [passwordMsg, setPasswordMsg] = useState<{ type: "success" | "error"; text: string } | null>(null)
+
+  useEffect(() => {
+    const load = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", user.id)
+        .single()
+      if (data) {
+        const parts = (data.full_name ?? "").split(" ")
+        setProfile({
+          firstName: parts[0] ?? "",
+          lastName: parts.slice(1).join(" "),
+          email: data.email ?? user.email ?? "",
+        })
+      }
+      setLoadingProfile(false)
+    }
+    load()
+  }, [])
+
+  const initials = [profile.firstName[0], profile.lastName[0]]
+    .filter(Boolean).join("").toUpperCase() || "?"
+
+  const handleSaveProfile = async () => {
+    setProfileMsg(null)
+    setSavingProfile(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const full_name = `${profile.firstName} ${profile.lastName}`.trim()
+
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({ full_name, email: profile.email })
+      .eq("id", user.id)
+
+    // update email in auth if changed
+    if (profile.email !== user.email) {
+      await supabase.auth.updateUser({ email: profile.email })
+    }
+
+    setSavingProfile(false)
+    setProfileMsg(profileError
+      ? { type: "error", text: profileError.message }
+      : { type: "success", text: "Profile updated." }
+    )
+  }
+
+  const handleChangePassword = async () => {
+    setPasswordMsg(null)
+    if (!passwords.next || passwords.next !== passwords.confirm) {
+      setPasswordMsg({ type: "error", text: "Passwords do not match." })
+      return
+    }
+    if (passwords.next.length < 8) {
+      setPasswordMsg({ type: "error", text: "Password must be at least 8 characters." })
+      return
+    }
+    setSavingPassword(true)
+    const { error } = await supabase.auth.updateUser({ password: passwords.next })
+    setSavingPassword(false)
+    setPasswordMsg(error
+      ? { type: "error", text: error.message }
+      : { type: "success", text: "Password updated." }
+    )
+    if (!error) setPasswords({ current: "", next: "", confirm: "" })
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!confirm("Are you sure? This cannot be undone.")) return
+    setDeletingAccount(true)
+    await fetch("/api/auth/delete-account", { method: "DELETE" })
+    await supabase.auth.signOut()
+    router.push("/login")
+  }
 
   return (
     <div className="p-6 max-w-2xl space-y-6">
@@ -48,28 +119,55 @@ export default function SettingsPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
-              <AvatarImage src="" />
-              <AvatarFallback>JD</AvatarFallback>
-            </Avatar>
-            <Button variant="outline" size="sm">Change avatar</Button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">First name</Label>
-              <Input defaultValue="John" />
+          {loadingProfile ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Loading…
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Last name</Label>
-              <Input defaultValue="Doe" />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-xs">Email</Label>
-              <Input defaultValue="john@example.com" type="email" />
-            </div>
-          </div>
-          <Button size="sm">Save changes</Button>
+          ) : (
+            <>
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src="" />
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">First name</Label>
+                  <Input value={profile.firstName}
+                    onChange={(e) => setProfile((p) => ({ ...p, firstName: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Last name</Label>
+                  <Input value={profile.lastName}
+                    onChange={(e) => setProfile((p) => ({ ...p, lastName: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="text-xs">Email</Label>
+                  <Input value={profile.email} type="email"
+                    onChange={(e) => setProfile((p) => ({ ...p, email: e.target.value }))} />
+                </div>
+              </div>
+
+              {profileMsg && (
+                <div className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md ${
+                  profileMsg.type === "success"
+                    ? "text-emerald-600 bg-emerald-500/10"
+                    : "text-destructive bg-destructive/10"
+                }`}>
+                  {profileMsg.type === "success"
+                    ? <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    : <AlertCircle className="h-4 w-4 shrink-0" />}
+                  {profileMsg.text}
+                </div>
+              )}
+
+              <Button size="sm" onClick={handleSaveProfile} disabled={savingProfile}>
+                {savingProfile ? <><Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />Saving…</> : "Save changes"}
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -83,21 +181,48 @@ export default function SettingsPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Password</p>
-              <p className="text-xs text-muted-foreground">Last changed 3 months ago</p>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">New password</Label>
+              <Input type="password" placeholder="Min. 8 characters" value={passwords.next}
+                onChange={(e) => setPasswords((p) => ({ ...p, next: e.target.value }))} />
             </div>
-            <Button variant="outline" size="sm">Change</Button>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Confirm new password</Label>
+              <Input type="password" placeholder="Repeat password" value={passwords.confirm}
+                onChange={(e) => setPasswords((p) => ({ ...p, confirm: e.target.value }))} />
+            </div>
+
+            {passwordMsg && (
+              <div className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md ${
+                passwordMsg.type === "success"
+                  ? "text-emerald-600 bg-emerald-500/10"
+                  : "text-destructive bg-destructive/10"
+              }`}>
+                {passwordMsg.type === "success"
+                  ? <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  : <AlertCircle className="h-4 w-4 shrink-0" />}
+                {passwordMsg.text}
+              </div>
+            )}
+
+            <Button size="sm" onClick={handleChangePassword} disabled={savingPassword}>
+              {savingPassword ? <><Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />Updating…</> : "Update password"}
+            </Button>
           </div>
+
           <Separator />
+
           <div>
             <p className="text-sm font-medium text-destructive">Danger zone</p>
             <p className="text-xs text-muted-foreground mb-3 mt-0.5">This action is irreversible</p>
-            <Button variant="destructive" size="sm">Delete account</Button>
+            <Button variant="destructive" size="sm"
+              onClick={handleDeleteAccount} disabled={deletingAccount}>
+              {deletingAccount ? <><Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />Deleting…</> : "Delete account"}
+            </Button>
           </div>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

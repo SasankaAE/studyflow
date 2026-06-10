@@ -196,12 +196,9 @@ export default function DashboardLayout({
               {navItems.find((n) => n.href === pathname)?.label ?? "Dashboard"}
             </h1>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-4 w-4" />
-                <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
-              </Button>
               <Avatar className="h-8 w-8">
-                <AvatarFallback className="text-xs">JD</AvatarFallback>
+                <AvatarImage src="" />
+                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
               </Avatar>
             </div>
           </header>
