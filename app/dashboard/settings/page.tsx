@@ -8,12 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Shield, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { User, Shield, CreditCard, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { usePlan } from "@/hooks/usePlan";
 
 export default function SettingsPage() {
   const router = useRouter()
   const supabase = createClient()
+  const { plan, usage, limits, loading: planLoading } = usePlan()
 
   const [profile, setProfile] = useState({ firstName: "", lastName: "", email: "" })
   const [passwords, setPasswords] = useState({ current: "", next: "", confirm: "" })
@@ -21,6 +24,7 @@ export default function SettingsPage() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [savingPassword, setSavingPassword] = useState(false)
   const [deletingAccount, setDeletingAccount] = useState(false)
+  const [upgradingPlan, setUpgradingPlan] = useState(false)
   const [profileMsg, setProfileMsg] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [passwordMsg, setPasswordMsg] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
@@ -54,19 +58,10 @@ export default function SettingsPage() {
     setSavingProfile(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-
     const full_name = `${profile.firstName} ${profile.lastName}`.trim()
-
     const { error: profileError } = await supabase
-      .from("profiles")
-      .update({ full_name, email: profile.email })
-      .eq("id", user.id)
-
-    // update email in auth if changed
-    if (profile.email !== user.email) {
-      await supabase.auth.updateUser({ email: profile.email })
-    }
-
+      .from("profiles").update({ full_name, email: profile.email }).eq("id", user.id)
+    if (profile.email !== user.email) await supabase.auth.updateUser({ email: profile.email })
     setSavingProfile(false)
     setProfileMsg(profileError
       ? { type: "error", text: profileError.message }
@@ -102,6 +97,18 @@ export default function SettingsPage() {
     router.push("/login")
   }
 
+  const handleUpgrade = async () => {
+    setUpgradingPlan(true)
+    await fetch("/api/billing/upgrade", { method: "POST" })
+    setUpgradingPlan(false)
+    window.location.reload()
+  }
+
+  const chatPct = limits.chatsPerMonth === Infinity ? 0
+    : Math.min(Math.round((usage.chats / limits.chatsPerMonth) * 100), 100)
+  const paperPct = limits.downloadsPerMonth === Infinity ? 0
+    : Math.min(Math.round((usage.papers / limits.downloadsPerMonth) * 100), 100)
+
   return (
     <div className="p-6 max-w-2xl space-y-6">
       <div>
@@ -131,7 +138,6 @@ export default function SettingsPage() {
                   <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs">First name</Label>
@@ -149,23 +155,95 @@ export default function SettingsPage() {
                     onChange={(e) => setProfile((p) => ({ ...p, email: e.target.value }))} />
                 </div>
               </div>
-
               {profileMsg && (
                 <div className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md ${
-                  profileMsg.type === "success"
-                    ? "text-emerald-600 bg-emerald-500/10"
-                    : "text-destructive bg-destructive/10"
+                  profileMsg.type === "success" ? "text-emerald-600 bg-emerald-500/10" : "text-destructive bg-destructive/10"
                 }`}>
-                  {profileMsg.type === "success"
-                    ? <CheckCircle2 className="h-4 w-4 shrink-0" />
-                    : <AlertCircle className="h-4 w-4 shrink-0" />}
+                  {profileMsg.type === "success" ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
                   {profileMsg.text}
                 </div>
               )}
-
               <Button size="sm" onClick={handleSaveProfile} disabled={savingProfile}>
                 {savingProfile ? <><Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />Saving…</> : "Save changes"}
               </Button>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Plan */}
+      <Card>
+        <CardHeader className="flex flex-row items-center gap-2 pb-3">
+          <CreditCard className="h-4 w-4 text-muted-foreground" />
+          <div>
+            <CardTitle className="text-sm">Plan & usage</CardTitle>
+            <CardDescription className="text-xs">Your current plan and monthly usage</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {planLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Current plan</span>
+                  <Badge variant={plan === "pro" ? "default" : "secondary"} className="text-xs capitalize">
+                    {plan}
+                  </Badge>
+                </div>
+                {plan === "free" && (
+                  <Button size="sm" onClick={handleUpgrade} disabled={upgradingPlan}>
+                    {upgradingPlan ? <><Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />Upgrading…</> : "Upgrade to Pro"}
+                  </Button>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Chats usage */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Chats this month</span>
+                  <span>
+                    {usage.chats} / {limits.chatsPerMonth === Infinity ? "∞" : limits.chatsPerMonth}
+                  </span>
+                </div>
+                {limits.chatsPerMonth !== Infinity && (
+                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${chatPct >= 90 ? "bg-destructive" : "bg-primary"}`}
+                      style={{ width: `${chatPct}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Downloads usage */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Downloads this month</span>
+                  <span>
+                    {usage.papers} / {limits.downloadsPerMonth === Infinity ? "∞" : limits.downloadsPerMonth}
+                  </span>
+                </div>
+                {limits.downloadsPerMonth !== Infinity && (
+                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${paperPct >= 90 ? "bg-destructive" : "bg-primary"}`}
+                      style={{ width: `${paperPct}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {plan === "free" && (
+                <p className="text-xs text-muted-foreground">
+                  Upgrade to Pro for unlimited chats and downloads.
+                </p>
+              )}
             </>
           )}
         </CardContent>
@@ -192,20 +270,14 @@ export default function SettingsPage() {
               <Input type="password" placeholder="Repeat password" value={passwords.confirm}
                 onChange={(e) => setPasswords((p) => ({ ...p, confirm: e.target.value }))} />
             </div>
-
             {passwordMsg && (
               <div className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md ${
-                passwordMsg.type === "success"
-                  ? "text-emerald-600 bg-emerald-500/10"
-                  : "text-destructive bg-destructive/10"
+                passwordMsg.type === "success" ? "text-emerald-600 bg-emerald-500/10" : "text-destructive bg-destructive/10"
               }`}>
-                {passwordMsg.type === "success"
-                  ? <CheckCircle2 className="h-4 w-4 shrink-0" />
-                  : <AlertCircle className="h-4 w-4 shrink-0" />}
+                {passwordMsg.type === "success" ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
                 {passwordMsg.text}
               </div>
             )}
-
             <Button size="sm" onClick={handleChangePassword} disabled={savingPassword}>
               {savingPassword ? <><Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />Updating…</> : "Update password"}
             </Button>
@@ -216,8 +288,7 @@ export default function SettingsPage() {
           <div>
             <p className="text-sm font-medium text-destructive">Danger zone</p>
             <p className="text-xs text-muted-foreground mb-3 mt-0.5">This action is irreversible</p>
-            <Button variant="destructive" size="sm"
-              onClick={handleDeleteAccount} disabled={deletingAccount}>
+            <Button variant="destructive" size="sm" onClick={handleDeleteAccount} disabled={deletingAccount}>
               {deletingAccount ? <><Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />Deleting…</> : "Delete account"}
             </Button>
           </div>
