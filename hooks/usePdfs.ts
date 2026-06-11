@@ -23,13 +23,19 @@ export function usePdfs() {
   }, [])
 
   const download = async (id: string, name: string) => {
-    const res = await fetch(`/api/pdfs/download/${id}`)
-    const { url } = await res.json()
-    const a = document.createElement("a")
-    a.href = url
-    a.download = name
-    a.click()
+  const res = await fetch(`/api/pdfs/download/${id}`)
+  const data = await res.json()
+
+  if (!res.ok) {
+    alert(data.error) // or wire to a toast if you have one
+    return
   }
+
+  const a = document.createElement("a")
+  a.href = data.url
+  a.download = name
+  a.click()
+}
 
   return { pdfs, loading, download }
 }
