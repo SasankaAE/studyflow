@@ -1,47 +1,104 @@
 # StudyFlow
 
-StudyFlow is a Next.js 16 app-router project built with React 19, TypeScript, Tailwind CSS, and shadcn/ui. The current UI is a landing-page style shell with a responsive navigation header and auth entry points.
+StudyFlow is a web app for managing and interacting with academic PDFs through a chat-driven workflow.
 
-## Getting Started
+## Project Status
 
-Install dependencies and start the dev server:
+The project is in MVP development.
+
+- Core product surfaces are implemented.
+- Main route structure is established for public, dashboard, admin, and API areas.
+- Current effort is focused on integration hardening, reliability, and release readiness.
+
+## What Exists Today
+
+### User-Facing Pages
+
+- Landing page
+- Login page
+- Signup page
+- Dashboard home
+- Dashboard chat
+- Dashboard papers
+- Dashboard settings
+
+### Admin Pages
+
+- Admin upload page
+
+### API Areas
+
+- Authentication: login, signup, logout, callback, delete account
+- Chat: server chat route
+- PDFs: upload, list, and download flow
+- Billing: upgrade route
+
+## Tech Stack
+
+- Next.js (App Router)
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Supabase (client/server integration)
+
+## Folder Layout
+
+app/
+
+- Public pages and app routing
+- Dashboard routes
+- Admin routes
+- API routes
+
+components/
+
+- Shared UI building blocks and page components
+
+hooks/
+
+- Feature hooks (plan, chat model config, PDFs, uploads)
+
+lib/
+
+- Shared utilities, plan metadata, usage helpers
+
+## Local Development
+
+Install dependencies:
 
 ```bash
 npm install
+```
+
+Run the app:
+
+```bash
 npm run dev
 ```
 
-Open the app at `http://localhost:3000`.
-
-## Available Scripts
+Build for production:
 
 ```bash
-npm run dev       # start the development server
-npm run build     # create a production build
-npm run start     # run the production build
-npm run lint      # run ESLint
-npm run typecheck # run the TypeScript compiler
-npm run format    # format TypeScript and TSX files with Prettier
+npm run build
+npm run start
 ```
 
-## Project Structure
-
-- `app/` - App Router routes, layout, and global styles
-- `components/` - Shared UI and page components
-- `components/ui/` - shadcn/ui primitives
-- `lib/` - Utility helpers
-- `public/` - Static assets
-
-## UI Components
-
-This project uses shadcn/ui. To add more components, use:
+Quality checks:
 
 ```bash
-npx shadcn@latest add button
+npm run lint
+npm run typecheck
 ```
 
-Import them with the `@` alias:
+## Current Priorities
 
-```tsx
-import { Button } from "@/components/ui/button"
-```
+- Complete end-to-end flow between auth, PDFs, chat, and billing.
+- Improve API and dashboard stability under real usage.
+- Prepare MVP for broader user testing.
+
+## Next Milestones
+
+- Finalize feature-level error handling and UX feedback.
+- Validate billing and access-control edge cases.
+- Define and run a release checklist for first external rollout.
