@@ -10,49 +10,49 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Zap,
+  MessageSquare,
+  FileDown,
+  BookOpen,
   ShieldCheck,
-  BarChart3,
-  Layers,
-  RefreshCw,
   Users,
 } from "lucide-react";
 
 const features = [
   {
-    icon: Zap,
-    title: "Lightning Fast",
+    icon: MessageSquare,
+    title: "AI Study Chat",
     description:
-      "Optimized performance out of the box. Ship features at the speed your users expect.",
+      "Ask questions, get explanations, and clear doubts instantly with an AI tutor available 24/7.",
+  },
+  {
+    icon: FileDown,
+    title: "Download Study PDFs",
+    description:
+      "Access and download notes, past papers, and study materials anytime, anywhere.",
+  },
+  {
+    icon: BookOpen,
+    title: "Organized by Subject",
+    description:
+      "Find exactly what you need with materials neatly categorized by subject, year, and topic.",
   },
   {
     icon: ShieldCheck,
-    title: "Secure by Default",
+    title: "Verified Content",
     description:
-      "Enterprise-grade security baked in. Your data stays protected without extra configuration.",
+      "All materials are reviewed and approved by admins, so you can trust what you study.",
   },
   {
-    icon: BarChart3,
-    title: "Powerful Analytics",
+    icon: Zap,
+    title: "Quick Access",
     description:
-      "Real-time insights into what matters. Make data-driven decisions with confidence.",
-  },
-  {
-    icon: Layers,
-    title: "Modular Architecture",
-    description:
-      "Pick what you need, leave what you don't. A composable system that scales with you.",
-  },
-  {
-    icon: RefreshCw,
-    title: "Seamless Sync",
-    description:
-      "Keep everything in sync across devices and teammates. No conflicts, no friction.",
+      "Fast search and instant downloads — spend less time searching and more time studying.",
   },
   {
     icon: Users,
-    title: "Built for Teams",
+    title: "Built for Students",
     description:
-      "Roles, permissions, and collaboration tools designed for how modern teams actually work.",
+      "Designed specifically for school and university students to make studying simple and effectiveive.",
   },
 ];
 

@@ -48,8 +48,8 @@ export function HeroSection() {
 
       {/* Subheading */}
       <p className="mt-6 max-w-2xl text-lg text-muted-foreground leading-relaxed">
-        MyApp helps teams ship better products with less effort. Streamline
-        your workflow, collaborate in real-time, and deliver with confidence.
+        StudyFlow helps school and university students organize notes, chat with AI tutors,
+        manage past papers, and stay on top of every subject — all in one place.
       </p>
 
       {/* CTA Buttons */}
@@ -61,7 +61,7 @@ export function HeroSection() {
           </Link>
         </Button>
         <Button size="lg" variant="outline" className="px-8 text-base" asChild>
-          <Link href="/demo">Watch demo</Link>
+          <Link href="#how-it-works">See how it works</Link>
         </Button>
       </div>
 

@@ -11,12 +11,6 @@ const footerLinks = {
     { label: "Pricing", href: "/" },
     { label: "FAQ", href: "/" },
   ],
-  Company: [
-    { label: "About", href: "/about" },
-    { label: "Blog", href: "/blog" },
-    { label: "Careers", href: "/careers" },
-    { label: "Contact", href: "/contact" },
-  ],
   Legal: [
     { label: "Privacy Policy", href: "/privacy" },
     { label: "Terms of Service", href: "/terms" },
@@ -29,9 +23,9 @@ export function Footer() {
     <footer className="border-t bg-background">
       <div className="mx-auto max-w-6xl px-6 py-12">
         {/* Top section: Logo + Links */}
-        <div className="mb-10 grid grid-cols-2 gap-8 sm:grid-cols-3 md:grid-cols-5">
-          {/* Brand column — wider on all sizes */}
-          <div className="col-span-2 sm:col-span-3 md:col-span-2">
+        <div className="mb-10 grid grid-cols-2 gap-8 sm:grid-cols-3">
+          {/* Brand column */}
+          <div className="col-span-2 sm:col-span-3">
             <Link href="/" className="mb-4 flex items-center gap-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

@@ -2,7 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { UserPlus, Settings2, Rocket } from "lucide-react";
+import { UserPlus, LayoutDashboard, BrainCircuit } from "lucide-react";
 
 const steps = [
   {
@@ -10,21 +10,21 @@ const steps = [
     icon: UserPlus,
     title: "Create your account",
     description:
-      "Sign up in seconds — no credit card required. Set up your profile and invite your team to get started right away.",
+      "Sign up in seconds — no credit card required. Set up your profile and you're ready to start studying right away.",
   },
   {
     step: "02",
-    icon: Settings2,
-    title: "Configure your workflow",
+    icon: LayoutDashboard,
+    title: "Log in to your dashboard",
     description:
-      "Customize your workspace to fit your needs. Connect your favorite tools and automate repetitive tasks effortlessly.",
+      "Access your personalized dashboard with all your subjects, notes, papers, and AI chat in one organized place.",
   },
   {
     step: "03",
-    icon: Rocket,
-    title: "Ship with confidence",
+    icon: BrainCircuit,
+    title: "Study smarter",
     description:
-      "Launch faster with real-time collaboration, instant feedback, and powerful analytics to track your progress.",
+      "Chat with AI tutors, review past papers, organize notes, and track your progress — all designed to help you learn faster.",
   },
 ];
 

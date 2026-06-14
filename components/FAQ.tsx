@@ -9,14 +9,19 @@ import { Badge } from "@/components/ui/badge"
 
 const faqs = [
   {
-    question: "What is MyApp and who is it for?",
+    question: "What is StudyFlow and who is it for?",
     answer:
-      "MyApp is a productivity platform designed for teams of all sizes. Whether you're a solo founder or a growing enterprise, MyApp helps you streamline workflows, collaborate in real-time, and ship faster.",
+      "StudyFlow is an AI-powered study platform built for school and university students. It helps you organize notes, manage past papers, chat with AI tutors, and stay on top of every subject — all in one place.",
   },
   {
     question: "Is there a free plan available?",
     answer:
-      "Yes! Our free plan includes up to 3 projects, 5 team members, and 5GB of storage. No credit card required to get started.",
+      "Yes! Our free plan gives you access to AI chat, note organization, and limited PDF storage. No credit card required to get started.",
+  },
+  {
+    question: "How does the AI chat tutor work?",
+    answer:
+      "Our AI chat is powered by advanced language models and can explain concepts, answer questions from your study materials, summarize notes, and help you prepare for exams — available 24/7.",
   },
   {
     question: "Can I upgrade or downgrade my plan at any time?",
@@ -24,19 +29,19 @@ const faqs = [
       "Absolutely. You can upgrade, downgrade, or cancel your subscription at any time from your account settings. Changes take effect at the start of your next billing cycle.",
   },
   {
-    question: "How does billing work?",
-    answer:
-      "We offer monthly and annual billing. Annual plans come with a 20% discount. You'll be charged at the start of each billing period, and invoices are sent to your registered email.",
-  },
-  {
     question: "Is my data secure?",
     answer:
-      "Security is our top priority. All data is encrypted in transit (TLS 1.3) and at rest (AES-256). We are SOC 2 Type II certified and conduct regular third-party security audits.",
+      "Yes. All your notes, files, and chat data are encrypted in transit and at rest. Only you (and admins, where applicable) can access your uploaded materials via secure signed URLs.",
+  },
+  {
+    question: "Do you offer support for both school and university students?",
+    answer:
+      "Definitely. StudyFlow is designed to scale from school-level subjects to university coursework, with content organization and AI assistance tailored to your academic level.",
   },
   {
     question: "Do you offer customer support?",
     answer:
-      "Yes. Free plan users have access to our community forum and documentation. Pro and Enterprise users get priority email and live chat support with guaranteed response times.",
+      "Yes. Free plan users have access to our help center and community forum. Premium users get priority email support with faster response times.",
   },
 ]
 
