@@ -1,8 +1,7 @@
 // components/Footer.tsx
 import Link from "next/link"
-import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
-import { GitBranch, X, BookOpen, Mail } from "lucide-react"
+import { GitBranch, X, Mail } from "lucide-react"
 
 const footerLinks = {
   Product: [
@@ -27,7 +26,18 @@ export function Footer() {
           {/* Brand Column */}
           <div>
             <Link href="/" className="mb-4 flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-primary" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-6 w-6 text-primary"
+              >
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
               <span className="text-lg font-semibold tracking-tight">
                 StudyFlow
               </span>
