@@ -139,16 +139,6 @@ export default function SignupPage() {
               Continue with Google
             </Button>
 
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              type="button"
-              onClick={() => handleOAuth("github")}
-            >
-              <GitBranch className="h-4 w-4" />
-              Continue with GitHub
-            </Button>
-
             <div className="relative">
               <Separator />
               <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">

@@ -17,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { GitBranch } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -111,7 +110,7 @@ export default function LoginPage() {
 
         <CardContent className="space-y-4">
           {/* OAuth Buttons */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3">
             <Button
               variant="outline"
               className="w-full gap-2"
@@ -137,14 +136,6 @@ export default function LoginPage() {
                 />
               </svg>
               Google
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={() => handleOAuth("github")}
-            >
-              <GitBranch className="h-4 w-4" />
-              GitHub
             </Button>
           </div>
 
