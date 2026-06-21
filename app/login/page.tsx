@@ -55,7 +55,7 @@ export default function LoginPage() {
     router.push("/dashboard")
   }
 
-  const handleOAuth = async (provider: "google" | "github") => {
+  const handleOAuth = async (provider: "google") => {
     await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${location.origin}/auth/callback` },
