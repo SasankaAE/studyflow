@@ -21,18 +21,7 @@ export const DEFAULT_CONFIG: OpenRouterConfig = {
   streaming: true,
 };
 
-export const OPENROUTER_MODELS = [
-  { id: "openai/gpt-4o-mini", label: "GPT-4o Mini" },
-  { id: "openai/gpt-4o", label: "GPT-4o" },
-  { id: "anthropic/claude-3.5-sonnet", label: "Claude 3.5 Sonnet" },
-  { id: "anthropic/claude-3-haiku", label: "Claude 3 Haiku" },
-  { id: "google/gemini-2.0-flash-001", label: "Gemini 2.0 Flash" },
-  { id: "meta-llama/llama-3.3-70b-instruct", label: "Llama 3.3 70B" },
-  { id: "mistralai/mistral-nemo", label: "Mistral Nemo" },
-  { id: "deepseek/deepseek-chat", label: "DeepSeek Chat" },
-];
-
-export function useOpenRouter(config: OpenRouterConfig) {
+export function useOpenRouter(config: OpenRouterConfig = DEFAULT_CONFIG) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -13,14 +13,14 @@ import {
   DEFAULT_CONFIG,
   OpenRouterConfig,
 } from "@/hooks/useOpenRouter"
-import { ChatConfig } from "@/components/ChatConfig"
+import { MarkdownMessage } from "@/components/chat/markdown-message"
 import {
   Sheet,
   SheetContent,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 const suggestions = [
   "Summarize a research paper",
@@ -61,23 +61,6 @@ export default function ChatPage() {
         <span className="max-w-[200px] truncate font-mono text-xs text-muted-foreground">
           {config.model}
         </span>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" title="Settings">
-              <Settings2 className="h-4 w-4" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-80 p-0" aria-describedby={undefined}>
-            <VisuallyHidden>
-              <SheetTitle>Chat Settings</SheetTitle>
-            </VisuallyHidden>
-            <ChatConfig
-              config={config}
-              onChange={setConfig}
-              onClear={clearMessages}
-            />
-          </SheetContent>
-        </Sheet>
       </div>
 
       {/* Messages */}
@@ -123,13 +106,21 @@ export default function ChatPage() {
                 </Avatar>
                 <div
                   className={cn(
-                    "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap",
+                    "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
                     msg.role === "user"
                       ? "rounded-tr-sm bg-primary text-primary-foreground"
                       : "rounded-tl-sm bg-muted text-foreground"
                   )}
                 >
-                  {msg.content || (
+                  {msg.content ? (
+                    isLoading &&
+                    msg.role === "assistant" &&
+                    i === messages.length - 1 ? (
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    ) : (
+                      <MarkdownMessage content={msg.content} />
+                    )
+                  ) : (
                     <span className="flex items-center gap-1.5">
                       {[0, 1, 2].map((j) => (
                         <span
