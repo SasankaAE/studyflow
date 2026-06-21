@@ -14,13 +14,6 @@ import {
   OpenRouterConfig,
 } from "@/hooks/useOpenRouter"
 import { MarkdownMessage } from "@/components/chat/markdown-message"
-import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 const suggestions = [
   "Summarize a research paper",
