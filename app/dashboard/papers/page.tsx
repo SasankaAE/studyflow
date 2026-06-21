@@ -92,22 +92,12 @@ export default function PapersPage() {
                   )}
                 </div>
                 <CardDescription className="flex items-center gap-3 text-xs mt-1">
-                  {paper.author && (
-                    <span className="flex items-center gap-1"><User className="h-3 w-3" />{paper.author}</span>
-                  )}
                   {paper.year && (
                     <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{paper.year}</span>
                   )}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                {paper.tags && paper.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {paper.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs px-2 py-0.5">{tag}</Badge>
-                    ))}
-                  </div>
-                )}
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{paper.size ?? ""}</span>
                   <Button
