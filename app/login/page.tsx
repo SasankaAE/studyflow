@@ -50,7 +50,7 @@ export default function LoginPage() {
     if (error) {
       setError(error.message)
       return
-    }
+    }   
 
     router.push("/dashboard")
   }
