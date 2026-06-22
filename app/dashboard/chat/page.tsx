@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Send, Sparkles, RotateCcw, Square } from "lucide-react"
@@ -26,6 +25,8 @@ export default function ChatPage() {
   const [config, setConfig] = useState<OpenRouterConfig>(DEFAULT_CONFIG)
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  // Plain div ref — we scroll this ourselves, not ScrollArea
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   const {
     messages,
@@ -56,16 +57,24 @@ export default function ChatPage() {
   }
 
   return (
+    // overflow-hidden on root prevents ANY horizontal scroll on the page
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
+
       {/* Header */}
-      <div className="flex w-full shrink-0 items-center justify-between border-b border-border bg-background px-3 py-2 sm:px-4">
-        <span className="max-w-[60vw] truncate font-mono text-xs text-muted-foreground sm:max-w-[200px]">
+      <div className="flex w-full shrink-0 items-center border-b border-border bg-background px-3 py-2 sm:px-4">
+        <span className="min-w-0 truncate font-mono text-xs text-muted-foreground">
           {config.model}
         </span>
       </div>
 
-      {/* Messages — overflow-x-hidden here is the key fix */}
-      <ScrollArea className="min-h-0 w-full flex-1 overflow-x-hidden">
+      {/* Messages
+          — plain div instead of shadcn ScrollArea
+          — overflow-y-auto + overflow-x-hidden is the critical fix
+          — w-full + min-w-0 prevents it from growing wider than parent */}
+      <div
+        ref={scrollRef}
+        className="min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto"
+      >
         <div className="w-full px-3 py-4 sm:px-6">
           {messages.length === 0 ? (
             <div className="flex min-h-[60vh] w-full flex-col items-center justify-center gap-6 px-4 text-center sm:min-h-[400px]">
@@ -97,6 +106,7 @@ export default function ChatPage() {
                 <div
                   key={i}
                   className={cn(
+                    // w-full + min-w-0 makes the row shrink to fit; never wider than container
                     "flex w-full min-w-0 gap-2 sm:gap-3",
                     msg.role === "user" && "flex-row-reverse"
                   )}
@@ -107,22 +117,32 @@ export default function ChatPage() {
                     </AvatarFallback>
                   </Avatar>
 
-                  {/* Bubble */}
+                  {/* Bubble:
+                      - flex-1 min-w-0: fills remaining space, allows shrinking below content size
+                      - overflow-hidden: clips anything that escapes
+                      - NO percentage max-width: percentages on flex children are unreliable on mobile */}
                   <div
                     className={cn(
-                      // min-w-0 + overflow-hidden stops the bubble from
-                      // growing past its max-width and bleeding off screen
-                      "min-w-0 max-w-[82%] overflow-hidden rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:max-w-[78%] sm:px-4 sm:py-3",
+                      "flex-1 min-w-0 overflow-hidden rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:px-4 sm:py-3",
                       msg.role === "user"
                         ? "rounded-tr-sm bg-primary text-primary-foreground"
                         : "rounded-tl-sm bg-muted text-foreground"
                     )}
+                    // Cap width so user bubbles don't span 100%
+                    style={{ maxWidth: "calc(100% - 36px)" }}
                   >
                     {msg.content ? (
                       isLoading &&
                       msg.role === "assistant" &&
                       i === messages.length - 1 ? (
-                        <p className="w-full break-words whitespace-pre-wrap">
+                        <p
+                          className="min-w-0"
+                          style={{
+                            wordBreak: "break-word",
+                            overflowWrap: "anywhere",
+                            whiteSpace: "pre-wrap",
+                          }}
+                        >
                           {msg.content}
                         </p>
                       ) : (
@@ -172,7 +192,7 @@ export default function ChatPage() {
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Input */}
       <div
@@ -194,7 +214,7 @@ export default function ChatPage() {
           <Textarea
             ref={textareaRef}
             placeholder="Ask anything…"
-            // text-base (16px) prevents iOS Safari auto-zoom on focus
+            // text-base = 16px — prevents iOS Safari from zooming on focus
             className="max-h-32 min-h-[44px] flex-1 resize-none text-base sm:text-sm"
             rows={1}
             value={input}
@@ -212,7 +232,6 @@ export default function ChatPage() {
               variant="destructive"
               className="h-11 w-11 shrink-0 sm:h-10 sm:w-10"
               onClick={stopGeneration}
-              title="Stop"
             >
               <Square className="h-4 w-4" />
             </Button>
