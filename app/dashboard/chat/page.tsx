@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Send, Sparkles, RotateCcw, Square, Settings2 } from "lucide-react"
+import { Send, Sparkles, RotateCcw, Square } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   useOpenRouter,
@@ -25,6 +25,7 @@ const suggestions = [
 export default function ChatPage() {
   const [config, setConfig] = useState<OpenRouterConfig>(DEFAULT_CONFIG)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const {
     messages,
@@ -41,6 +42,14 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, isLoading])
 
+  // Auto-resize textarea as user types
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = "auto"
+    el.style.height = `${Math.min(el.scrollHeight, 128)}px`
+  }, [input])
+
   const handleSend = async (text: string) => {
     if (!text.trim() || isLoading) return
     setInput("")
@@ -48,18 +57,18 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Header bar */}
-      <div className="flex items-center justify-between border-b border-border bg-background px-4 py-2">
-        <span className="max-w-[200px] truncate font-mono text-xs text-muted-foreground">
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Header */}
+      <div className="flex shrink-0 items-center justify-between border-b border-border bg-background px-3 py-2 sm:px-4">
+        <span className="max-w-[60vw] truncate font-mono text-xs text-muted-foreground sm:max-w-[200px]">
           {config.model}
         </span>
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 px-6 py-4">
+      <ScrollArea className="min-h-0 flex-1 px-3 py-4 sm:px-6">
         {messages.length === 0 ? (
-          <div className="flex h-full min-h-[400px] flex-col items-center justify-center gap-6 text-center">
+          <div className="flex h-full min-h-[60vh] flex-col items-center justify-center gap-6 px-4 text-center sm:min-h-[400px]">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
               <Sparkles className="h-7 w-7 text-primary" />
             </div>
@@ -74,7 +83,7 @@ export default function ChatPage() {
                 <Badge
                   key={s}
                   variant="outline"
-                  className="cursor-pointer px-3 py-1.5 text-xs transition-colors hover:bg-accent"
+                  className="cursor-pointer px-3 py-2 text-xs transition-colors active:bg-accent sm:py-1.5 sm:hover:bg-accent"
                   onClick={() => handleSend(s)}
                 >
                   {s}
@@ -88,18 +97,18 @@ export default function ChatPage() {
               <div
                 key={i}
                 className={cn(
-                  "flex gap-3",
+                  "flex gap-2 sm:gap-3",
                   msg.role === "user" && "flex-row-reverse"
                 )}
               >
-                <Avatar className="mt-0.5 h-8 w-8 shrink-0">
+                <Avatar className="mt-0.5 h-7 w-7 shrink-0 sm:h-8 sm:w-8">
                   <AvatarFallback className="text-xs">
                     {msg.role === "user" ? "U" : "AI"}
                   </AvatarFallback>
                 </Avatar>
                 <div
                   className={cn(
-                    "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
+                    "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:max-w-[80%] sm:px-4 sm:py-3",
                     msg.role === "user"
                       ? "rounded-tr-sm bg-primary text-primary-foreground"
                       : "rounded-tl-sm bg-muted text-foreground"
@@ -109,7 +118,7 @@ export default function ChatPage() {
                     isLoading &&
                     msg.role === "assistant" &&
                     i === messages.length - 1 ? (
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                      <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                     ) : (
                       <MarkdownMessage content={msg.content} />
                     )
@@ -128,14 +137,13 @@ export default function ChatPage() {
               </div>
             ))}
 
-            {/* Standalone loading bubble when no streaming content yet */}
             {isLoading &&
               messages[messages.length - 1]?.role !== "assistant" && (
-                <div className="flex gap-3">
-                  <Avatar className="h-8 w-8 shrink-0">
+                <div className="flex gap-2 sm:gap-3">
+                  <Avatar className="h-7 w-7 shrink-0 sm:h-8 sm:w-8">
                     <AvatarFallback className="text-xs">AI</AvatarFallback>
                   </Avatar>
-                  <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-muted px-4 py-3">
+                  <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-muted px-3.5 py-2.5 sm:px-4 sm:py-3">
                     {[0, 1, 2].map((i) => (
                       <span
                         key={i}
@@ -159,12 +167,16 @@ export default function ChatPage() {
       </ScrollArea>
 
       {/* Input */}
-      <div className="border-t border-border bg-background p-4">
+      <div
+        className="shrink-0 border-t border-border bg-background p-3 sm:p-4"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      >
         <div className="mx-auto flex max-w-3xl items-end gap-2">
           {messages.length > 0 && (
             <Button
               variant="ghost"
               size="icon"
+              className="h-11 w-11 shrink-0 sm:h-10 sm:w-10"
               onClick={clearMessages}
               title="Clear chat"
             >
@@ -172,8 +184,9 @@ export default function ChatPage() {
             </Button>
           )}
           <Textarea
+            ref={textareaRef}
             placeholder="Ask anything…"
-            className="max-h-32 min-h-[44px] resize-none text-sm"
+            className="max-h-32 min-h-[44px] resize-none text-base sm:text-sm"
             rows={1}
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -188,6 +201,7 @@ export default function ChatPage() {
             <Button
               size="icon"
               variant="destructive"
+              className="h-11 w-11 shrink-0 sm:h-10 sm:w-10"
               onClick={stopGeneration}
               title="Stop"
             >
@@ -196,6 +210,7 @@ export default function ChatPage() {
           ) : (
             <Button
               size="icon"
+              className="h-11 w-11 shrink-0 sm:h-10 sm:w-10"
               disabled={!input.trim()}
               onClick={() => handleSend(input)}
             >
@@ -203,7 +218,7 @@ export default function ChatPage() {
             </Button>
           )}
         </div>
-        <p className="mt-2 text-center text-xs text-muted-foreground">
+        <p className="mt-2 hidden text-center text-xs text-muted-foreground sm:block">
           Press Enter to send · Shift+Enter for new line
         </p>
       </div>
