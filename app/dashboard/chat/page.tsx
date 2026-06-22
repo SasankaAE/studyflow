@@ -97,7 +97,7 @@ export default function ChatPage() {
               <div
                 key={i}
                 className={cn(
-                  "flex gap-2 sm:gap-3",
+                  "flex min-w-0 gap-2 sm:gap-3",
                   msg.role === "user" && "flex-row-reverse"
                 )}
               >
@@ -108,7 +108,7 @@ export default function ChatPage() {
                 </Avatar>
                 <div
                   className={cn(
-                    "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:max-w-[80%] sm:px-4 sm:py-3",
+                    "min-w-0 max-w-[85%] overflow-hidden rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:max-w-[80%] sm:px-4 sm:py-3",
                     msg.role === "user"
                       ? "rounded-tr-sm bg-primary text-primary-foreground"
                       : "rounded-tl-sm bg-muted text-foreground"
@@ -118,7 +118,9 @@ export default function ChatPage() {
                     isLoading &&
                     msg.role === "assistant" &&
                     i === messages.length - 1 ? (
-                      <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                      <p className="break-words whitespace-pre-wrap">
+                        {msg.content}
+                      </p>
                     ) : (
                       <MarkdownMessage content={msg.content} />
                     )
@@ -137,6 +139,7 @@ export default function ChatPage() {
               </div>
             ))}
 
+            {/* Standalone loading bubble */}
             {isLoading &&
               messages[messages.length - 1]?.role !== "assistant" && (
                 <div className="flex gap-2 sm:gap-3">
