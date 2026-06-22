@@ -64,8 +64,8 @@ export default function ChatPage() {
         </span>
       </div>
 
-      {/* Messages */}
-      <ScrollArea className="min-h-0 w-full flex-1">
+      {/* Messages — overflow-x-hidden here is the key fix */}
+      <ScrollArea className="min-h-0 w-full flex-1 overflow-x-hidden">
         <div className="w-full px-3 py-4 sm:px-6">
           {messages.length === 0 ? (
             <div className="flex min-h-[60vh] w-full flex-col items-center justify-center gap-6 px-4 text-center sm:min-h-[400px]">
@@ -97,21 +97,22 @@ export default function ChatPage() {
                 <div
                   key={i}
                   className={cn(
-                    "flex w-full items-start gap-2 sm:gap-3",
+                    "flex w-full min-w-0 gap-2 sm:gap-3",
                     msg.role === "user" && "flex-row-reverse"
                   )}
                 >
-                  {/* Avatar — fixed size so bubble max-w calc works */}
                   <Avatar className="mt-0.5 h-7 w-7 shrink-0 sm:h-8 sm:w-8">
                     <AvatarFallback className="text-xs">
                       {msg.role === "user" ? "U" : "AI"}
                     </AvatarFallback>
                   </Avatar>
 
-                  {/* Bubble — max-w accounts for avatar (28px) + gap (8px) */}
+                  {/* Bubble */}
                   <div
                     className={cn(
-                      "max-w-[calc(100%-2.25rem)] min-w-0 rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:max-w-[calc(100%-2.75rem)] sm:px-4 sm:py-3",
+                      // min-w-0 + overflow-hidden stops the bubble from
+                      // growing past its max-width and bleeding off screen
+                      "min-w-0 max-w-[82%] overflow-hidden rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:max-w-[78%] sm:px-4 sm:py-3",
                       msg.role === "user"
                         ? "rounded-tr-sm bg-primary text-primary-foreground"
                         : "rounded-tl-sm bg-muted text-foreground"
@@ -121,7 +122,7 @@ export default function ChatPage() {
                       isLoading &&
                       msg.role === "assistant" &&
                       i === messages.length - 1 ? (
-                        <p className="break-words whitespace-pre-wrap">
+                        <p className="w-full break-words whitespace-pre-wrap">
                           {msg.content}
                         </p>
                       ) : (
@@ -145,8 +146,8 @@ export default function ChatPage() {
               {/* Standalone loading bubble */}
               {isLoading &&
                 messages[messages.length - 1]?.role !== "assistant" && (
-                  <div className="flex w-full items-start gap-2 sm:gap-3">
-                    <Avatar className="mt-0.5 h-7 w-7 shrink-0 sm:h-8 sm:w-8">
+                  <div className="flex gap-2 sm:gap-3">
+                    <Avatar className="h-7 w-7 shrink-0 sm:h-8 sm:w-8">
                       <AvatarFallback className="text-xs">AI</AvatarFallback>
                     </Avatar>
                     <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-muted px-3.5 py-2.5 sm:px-4 sm:py-3">
@@ -162,7 +163,7 @@ export default function ChatPage() {
                 )}
 
               {error && (
-                <p className="w-full rounded-lg bg-destructive/10 px-4 py-2 text-center text-xs text-destructive">
+                <p className="rounded-lg bg-destructive/10 px-4 py-2 text-center text-xs text-destructive">
                   {error}
                 </p>
               )}
@@ -193,7 +194,8 @@ export default function ChatPage() {
           <Textarea
             ref={textareaRef}
             placeholder="Ask anything…"
-            className="max-h-32 min-h-[44px] w-full resize-none text-base sm:text-sm"
+            // text-base (16px) prevents iOS Safari auto-zoom on focus
+            className="max-h-32 min-h-[44px] flex-1 resize-none text-base sm:text-sm"
             rows={1}
             value={input}
             onChange={(e) => setInput(e.target.value)}
