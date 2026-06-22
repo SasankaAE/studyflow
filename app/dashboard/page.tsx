@@ -32,6 +32,7 @@ export default function OverviewPage() {
     { id: string; title: string; type: string; created_at: string }[]
   >([])
   const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
 
   const loadData = async () => {
     const {
@@ -57,7 +58,7 @@ export default function OverviewPage() {
       .select("id, title, type, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(10)
+      .limit(50)
 
     setStats({
       totalChats: allLogs?.filter((r) => r.type === "chat").length ?? 0,
@@ -87,8 +88,8 @@ export default function OverviewPage() {
   function timeAgo(iso: string) {
     const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
     if (diff < 60) return `${diff}s ago`
-    if (diff < 3600) return `${Math.floor(diff / 60)} min ago`
-    if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago` // shorter on mobile
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
     return "Yesterday"
   }
 
@@ -142,12 +143,10 @@ export default function OverviewPage() {
   const ITEMS_PER_PAGE = 4
 
   function getPageNumbers(current: number, total: number) {
-    // Always show first, last, current, and neighbors; collapse the rest with ellipses
     const pages = new Set<number>([1, total, current, current - 1, current + 1])
     return [...pages].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b)
   }
 
-  const [page, setPage] = useState(1)
   const totalPages = Math.max(1, Math.ceil(activity.length / ITEMS_PER_PAGE))
   const paginatedActivity = activity.slice(
     (page - 1) * ITEMS_PER_PAGE,
@@ -156,12 +155,12 @@ export default function OverviewPage() {
   const pageNumbers = getPageNumbers(page, totalPages)
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 p-4 sm:space-y-6 sm:p-6">
       {/* Plan banner — free users only */}
       {!planLoading && plan === "free" && (
-        <div className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Zap className="h-4 w-4 shrink-0 text-orange-500" />
+        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3 sm:items-center">
+            <Zap className="mt-0.5 h-4 w-4 shrink-0 text-orange-500 sm:mt-0" />
             <div>
               <p className="text-sm font-medium">You're on the Free plan</p>
               <p className="text-xs text-muted-foreground">
@@ -170,18 +169,22 @@ export default function OverviewPage() {
               </p>
             </div>
           </div>
-          <Button size="sm" onClick={() => router.push("/dashboard/settings")}>
+          <Button
+            size="sm"
+            className="w-full sm:w-auto"
+            onClick={() => router.push("/dashboard/settings")}
+          >
             Upgrade to Pro
           </Button>
         </div>
       )}
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {statCards.map(({ label, value, delta, icon: Icon, color, bg }) => (
           <div
             key={label}
-            className="space-y-3 rounded-lg border border-border bg-card p-4"
+            className="space-y-2 rounded-lg border border-border bg-card p-3 sm:space-y-3 sm:p-4"
           >
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">{label}</p>
@@ -189,13 +192,15 @@ export default function OverviewPage() {
                 <Icon className={`h-3.5 w-3.5 ${color}`} />
               </div>
             </div>
-            <p className="text-2xl font-semibold">{loading ? "—" : value}</p>
+            <p className="text-xl font-semibold sm:text-2xl">
+              {loading ? "—" : value}
+            </p>
             <p className="text-xs text-muted-foreground">{delta}</p>
           </div>
         ))}
       </div>
 
-      {/* Plan usage + Activity side by side on large screens */}
+      {/* Plan usage + Activity */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Plan & usage */}
         <div className="space-y-4 rounded-lg border border-border bg-card p-4">
@@ -299,29 +304,34 @@ export default function OverviewPage() {
                 {paginatedActivity.map((item, i) => (
                   <li
                     key={item.id}
-                    className={`flex items-center justify-between px-4 py-3 text-sm ${
+                    className={`flex items-center gap-3 px-4 py-3 text-sm ${
                       i !== paginatedActivity.length - 1
                         ? "border-b border-border"
                         : ""
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`shrink-0 rounded-md p-1.5 ${
-                          item.type === "chat"
-                            ? "bg-blue-500/10"
-                            : "bg-emerald-500/10"
-                        }`}
-                      >
-                        {item.type === "chat" ? (
-                          <MessageSquare className="h-3.5 w-3.5 text-blue-500" />
-                        ) : (
-                          <FileDown className="h-3.5 w-3.5 text-emerald-500" />
-                        )}
-                      </div>
-                      <span className="max-w-xs truncate">{item.title}</span>
+                    {/* Icon */}
+                    <div
+                      className={`shrink-0 rounded-md p-1.5 ${
+                        item.type === "chat"
+                          ? "bg-blue-500/10"
+                          : "bg-emerald-500/10"
+                      }`}
+                    >
+                      {item.type === "chat" ? (
+                        <MessageSquare className="h-3.5 w-3.5 text-blue-500" />
+                      ) : (
+                        <FileDown className="h-3.5 w-3.5 text-emerald-500" />
+                      )}
                     </div>
-                    <span className="ml-4 shrink-0 text-xs text-muted-foreground">
+
+                    {/* Title — takes remaining space, truncates */}
+                    <span className="min-w-0 flex-1 truncate">
+                      {item.title}
+                    </span>
+
+                    {/* Timestamp — never shrinks */}
+                    <span className="shrink-0 text-xs text-muted-foreground">
                       {timeAgo(item.created_at)}
                     </span>
                   </li>
@@ -329,9 +339,9 @@ export default function OverviewPage() {
               </ul>
 
               {totalPages > 1 && (
-                <div className="border-t border-border px-4 py-3">
+                <div className="border-t border-border px-2 py-3 sm:px-4">
                   <Pagination>
-                    <PaginationContent>
+                    <PaginationContent className="flex-wrap gap-1">
                       <PaginationItem>
                         <PaginationPrevious
                           href="#"
