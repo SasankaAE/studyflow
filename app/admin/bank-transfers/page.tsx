@@ -132,42 +132,61 @@ export default function AdminBankTransfersPage() {
     window.open(data.signedUrl, "_blank");
   };
 
-  const handleAction = async () => {
-    if (!selected || !action) return;
-    setProcessing(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
+ const handleAction = async () => {
+  if (!selected || !action) return;
+  setProcessing(true);
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    const newStatus = action === "approve" ? "approved" : "rejected";
 
-      const { error: updateError } = await supabase
-        .from("bank_transfer_requests")
-        .update({
-          status: action === "approve" ? "approved" : "rejected",
-          notes: adminNotes || null,
-          reviewed_at: new Date().toISOString(),
-          reviewed_by: user?.id,
-        })
-        .eq("id", selected.id);
-      if (updateError) throw updateError;
+    const { data: updateData, error: updateError } = await supabase
+      .from("bank_transfer_requests")
+      .update({
+        status: newStatus,
+        notes: adminNotes || null,
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: user?.id,
+      })
+      .eq("id", selected.id)
+      .select();
 
-      if (action === "approve") {
-        const { error: planError } = await supabase
-          .from("profiles")
-          .update({ plan: selected.target_plan, plan_updated_at: new Date().toISOString() })
-          .eq("id", selected.user_id);
-        if (planError) throw planError;
-      }
-
-      toast.success(action === "approve" ? "Plan upgraded successfully!" : "Request rejected.");
-      setSelected(null);
-      setAction(null);
-      setAdminNotes("");
-      fetchRequests();
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setProcessing(false);
+    if (updateError) throw new Error(`Request update failed: ${updateError.message}`);
+    if (!updateData || updateData.length === 0) {
+      throw new Error("RLS blocked bank_transfer_requests update — check admin policy");
     }
-  };
+
+    if (action === "approve") {
+      const { data: planData, error: planError } = await supabase
+        .from("profiles")
+        .update({
+          plan: selected.target_plan,
+          plan_updated_at: new Date().toISOString(),
+        })
+        .eq("id", selected.user_id)
+        .select();
+
+      if (planError) throw new Error(`Profile update failed: ${planError.message}`);
+      if (!planData || planData.length === 0) {
+        throw new Error("RLS blocked profiles update — check admin policy on profiles table");
+      }
+    }
+
+    // Immediately reflect in UI
+    setRequests(prev => prev.map(r =>
+      r.id === selected.id ? { ...r, status: newStatus } : r
+    ));
+
+    toast.success(action === "approve" ? "Plan upgraded successfully!" : "Request rejected.");
+    setSelected(null);
+    setAction(null);
+    setAdminNotes("");
+    fetchRequests();
+  } catch (err: any) {
+    toast.error(err.message);
+  } finally {
+    setProcessing(false);
+  }
+};
 
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
