@@ -135,49 +135,60 @@ export default function AdminBankTransfersPage() {
 const handleAction = async () => {
   if (!selected || !action) return;
   setProcessing(true);
+
+  const newStatus = action === "approve" ? "approved" : "rejected";
+
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    console.log("Admin user ID:", user?.id, "| email:", user?.email);
 
-    // Update request status
+    // Step 1: update bank_transfer_requests
     const { data: updateData, error: updateError } = await supabase
       .from("bank_transfer_requests")
       .update({
-        status: action === "approve" ? "approved" : "rejected",
+        status: newStatus,
         notes: adminNotes || null,
         reviewed_at: new Date().toISOString(),
         reviewed_by: user?.id,
       })
       .eq("id", selected.id)
-      .select(); // <-- add this to see what was actually updated
+      .select();
 
-    console.log("Update result:", updateData, "| Error:", updateError);
-    if (updateError) throw updateError;
+    if (updateError) throw new Error(`Transfer update failed: ${updateError.message}`);
     if (!updateData || updateData.length === 0) {
-      throw new Error("RLS blocked the update — row returned 0 results");
+      throw new Error("Transfer update blocked by RLS — disable RLS on bank_transfer_requests table");
     }
 
+    // Step 2: update profiles plan if approved
     if (action === "approve") {
       const { data: planData, error: planError } = await supabase
         .from("profiles")
-        .update({ plan: selected.target_plan, plan_updated_at: new Date().toISOString() })
+        .update({
+          plan: selected.target_plan,
+          plan_updated_at: new Date().toISOString(),
+        })
         .eq("id", selected.user_id)
-        .select(); // <-- add this too
+        .select();
 
-      console.log("Plan update result:", planData, "| Error:", planError);
-      if (planError) throw planError;
+      if (planError) throw new Error(`Profile update failed: ${planError.message}`);
       if (!planData || planData.length === 0) {
-        throw new Error("RLS blocked the profiles update — 0 rows updated");
+        throw new Error("Profile update blocked by RLS — add admin UPDATE policy on profiles table");
       }
     }
 
-    toast.success(action === "approve" ? "Plan upgraded successfully!" : "Request rejected.");
+    // Step 3: update local state immediately
+    setRequests(prev => prev.map(r =>
+      r.id === selected.id ? { ...r, status: newStatus } : r
+    ));
+
+    toast.success(action === "approve" ? "✅ Plan upgraded to Pro!" : "❌ Request rejected.");
     setSelected(null);
     setAction(null);
     setAdminNotes("");
     fetchRequests();
+
   } catch (err: any) {
-    console.error("handleAction error:", err);
+    // Show full error in an alert so it doesn't disappear
+    alert(`ERROR: ${err.message}`);
     toast.error(err.message);
   } finally {
     setProcessing(false);
