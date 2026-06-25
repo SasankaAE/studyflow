@@ -135,14 +135,12 @@ export default function AdminBankTransfersPage() {
 const handleAction = async () => {
   if (!selected || !action) return;
   setProcessing(true);
-
   const newStatus = action === "approve" ? "approved" : "rejected";
 
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Step 1: update bank_transfer_requests
-    const { data: updateData, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from("bank_transfer_requests")
       .update({
         status: newStatus,
@@ -150,44 +148,33 @@ const handleAction = async () => {
         reviewed_at: new Date().toISOString(),
         reviewed_by: user?.id,
       })
-      .eq("id", selected.id)
-      .select();
+      .eq("id", selected.id);
 
     if (updateError) throw new Error(`Transfer update failed: ${updateError.message}`);
-    if (!updateData || updateData.length === 0) {
-      throw new Error("Transfer update blocked by RLS — disable RLS on bank_transfer_requests table");
-    }
 
-    // Step 2: update profiles plan if approved
     if (action === "approve") {
-      const { data: planData, error: planError } = await supabase
+      const { error: planError } = await supabase
         .from("profiles")
         .update({
           plan: selected.target_plan,
           plan_updated_at: new Date().toISOString(),
         })
-        .eq("id", selected.user_id)
-        .select();
+        .eq("id", selected.user_id);
 
       if (planError) throw new Error(`Profile update failed: ${planError.message}`);
-      if (!planData || planData.length === 0) {
-        throw new Error("Profile update blocked by RLS — add admin UPDATE policy on profiles table");
-      }
     }
 
-    // Step 3: update local state immediately
     setRequests(prev => prev.map(r =>
       r.id === selected.id ? { ...r, status: newStatus } : r
     ));
 
-    toast.success(action === "approve" ? "✅ Plan upgraded to Pro!" : "❌ Request rejected.");
+    toast.success(action === "approve" ? "✅ Plan upgraded to Pro!" : "Request rejected.");
     setSelected(null);
     setAction(null);
     setAdminNotes("");
     fetchRequests();
 
   } catch (err: any) {
-    // Show full error in an alert so it doesn't disappear
     alert(`ERROR: ${err.message}`);
     toast.error(err.message);
   } finally {
