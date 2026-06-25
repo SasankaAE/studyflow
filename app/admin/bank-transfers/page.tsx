@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { ExternalLink, RefreshCw, UserCog } from "lucide-react"
+import { approveTransfer } from "../actions";
 
 type TransferRequest = {
   id: string
@@ -164,69 +165,36 @@ export default function AdminBankTransfersPage() {
   }
 
   const handleAction = async (confirmedAction: "approve" | "reject") => {
-    if (!selected || !confirmedAction) return
-    setProcessing(true)
-    const newStatus = confirmedAction === "approve" ? "approved" : "rejected"
+  if (!selected) return;
+  setProcessing(true);
+  const newStatus = confirmedAction === "approve" ? "approved" : "rejected";
 
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+  try {
+    await approveTransfer(
+      selected.id,
+      selected.user_id,
+      selected.target_plan,
+      adminNotes || null,
+      confirmedAction
+    );
 
-      const { error: updateError } = await supabase
-        .from("bank_transfer_requests")
-        .update({
-          status: newStatus,
-          notes: adminNotes || null,
-          reviewed_at: new Date().toISOString(),
-          reviewed_by: user?.id,
-        })
-        .eq("id", selected.id)
+    setRequests(prev => prev.map(r =>
+      r.id === selected.id ? { ...r, status: newStatus } : r
+    ));
 
-      if (updateError)
-        throw new Error(`Transfer update failed: ${updateError.message}`)
+    toast.success(confirmedAction === "approve" ? "✅ Plan upgraded to Pro!" : "Request rejected.");
+    setSelected(null);
+    setAction(null);
+    setAdminNotes("");
+    fetchRequests();
 
-      if (confirmedAction === "approve") {
-        const { data: planData, error: planError } = await supabase
-          .from("profiles")
-          .update({
-            plan: selected.target_plan,
-            plan_updated_at: new Date().toISOString(),
-          })
-          .eq("id", selected.user_id)
-          .select()
-
-        if (planError)
-          throw new Error(`Profile update failed: ${planError.message}`)
-        if (!planData || planData.length === 0) {
-          throw new Error(
-            "Profile update blocked by RLS — add admin UPDATE policy on profiles table"
-          )
-        }
-      }
-
-      setRequests((prev) =>
-        prev.map((r) =>
-          r.id === selected.id ? { ...r, status: newStatus } : r
-        )
-      )
-
-      toast.success(
-        confirmedAction === "approve"
-          ? "✅ Plan upgraded to Pro!"
-          : "Request rejected."
-      )
-      setSelected(null)
-      setAction(null)
-      setAdminNotes("")
-      fetchRequests()
-    } catch (err: any) {
-      alert(`ERROR: ${err.message}`)
-      toast.error(err.message)
-    } finally {
-      setProcessing(false)
-    }
+  } catch (err: any) {
+    alert(`ERROR: ${err.message}`);
+    toast.error(err.message);
+  } finally {
+    setProcessing(false);
   }
+};
 
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
