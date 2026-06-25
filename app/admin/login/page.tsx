@@ -43,7 +43,7 @@ export default function AdminLoginPage() {
       return;
     }
 
-    router.push("/adminDashboard");
+    router.push("/admin/adminDashboard");
   }
 
   async function handleGoogleLogin() {
