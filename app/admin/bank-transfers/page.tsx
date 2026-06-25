@@ -579,7 +579,7 @@ export default function AdminBankTransfersPage() {
               confirming a bank transfer directly.
             </p>
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label>User Email</Label>
               <div className="flex gap-2">
                 <Input
@@ -596,7 +596,7 @@ export default function AdminBankTransfersPage() {
                   variant="outline"
                   onClick={lookupUser}
                   disabled={manualLoading}
-                  className="shrink-0"
+                  className="w-20 shrink-0"
                 >
                   {manualLoading ? "..." : "Lookup"}
                 </Button>
@@ -604,12 +604,12 @@ export default function AdminBankTransfersPage() {
             </div>
 
             {manualResult && (
-              <div className="space-y-1 rounded bg-muted p-3">
-                <p>
-                  <span className="text-muted-foreground">Name:</span>{" "}
-                  {manualResult.name}
+              <div className="space-y-1.5 rounded-md bg-muted p-3 text-sm">
+                <p className="flex flex-wrap items-center gap-x-1">
+                  <span className="text-muted-foreground">Name:</span>
+                  <span className="font-medium">{manualResult.name}</span>
                 </p>
-                <p className="flex items-center gap-1">
+                <p className="flex flex-wrap items-center gap-x-1">
                   <span className="text-muted-foreground">Current plan:</span>
                   <Badge variant="outline" className="capitalize">
                     {manualResult.current_plan}
@@ -618,7 +618,7 @@ export default function AdminBankTransfersPage() {
               </div>
             )}
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label>Set Plan To</Label>
               <Select
                 value={manualPlan}
@@ -641,7 +641,7 @@ export default function AdminBankTransfersPage() {
             )}
           </div>
 
-          <DialogFooter className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:gap-2">
+          <DialogFooter className="mt-2 flex flex-col gap-2 sm:flex-row sm:justify-end">
             <Button
               variant="outline"
               className="w-full sm:w-auto"
