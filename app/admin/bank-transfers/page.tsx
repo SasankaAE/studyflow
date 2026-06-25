@@ -133,56 +133,42 @@ export default function AdminBankTransfersPage() {
   };
 
   const handleAction = async () => {
-  if (!selected || !action) return;
-  setProcessing(true);
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    console.log("Admin user ID:", user?.id, "| email:", user?.email);
+    if (!selected || !action) return;
+    setProcessing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
 
-    // Update request status
-    const { data: updateData, error: updateError } = await supabase
-      .from("bank_transfer_requests")
-      .update({
-        status: action === "approve" ? "approved" : "rejected",
-        notes: adminNotes || null,
-        reviewed_at: new Date().toISOString(),
-        reviewed_by: user?.id,
-      })
-      .eq("id", selected.id)
-      .select(); // <-- add this to see what was actually updated
+      const { error: updateError } = await supabase
+        .from("bank_transfer_requests")
+        .update({
+          status: action === "approve" ? "approved" : "rejected",
+          notes: adminNotes || null,
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: user?.id,
+        })
+        .eq("id", selected.id);
+      if (updateError) throw updateError;
 
-    console.log("Update result:", updateData, "| Error:", updateError);
-    if (updateError) throw updateError;
-    if (!updateData || updateData.length === 0) {
-      throw new Error("RLS blocked the update — row returned 0 results");
-    }
-
-    if (action === "approve") {
-      const { data: planData, error: planError } = await supabase
-        .from("profiles")
-        .update({ plan: selected.target_plan, plan_updated_at: new Date().toISOString() })
-        .eq("id", selected.user_id)
-        .select(); // <-- add this too
-
-      console.log("Plan update result:", planData, "| Error:", planError);
-      if (planError) throw planError;
-      if (!planData || planData.length === 0) {
-        throw new Error("RLS blocked the profiles update — 0 rows updated");
+      if (action === "approve") {
+        const { error: planError } = await supabase
+          .from("profiles")
+          .update({ plan: selected.target_plan, plan_updated_at: new Date().toISOString() })
+          .eq("id", selected.user_id);
+        if (planError) throw planError;
       }
-    }
 
-    toast.success(action === "approve" ? "Plan upgraded successfully!" : "Request rejected.");
-    setSelected(null);
-    setAction(null);
-    setAdminNotes("");
-    fetchRequests();
-  } catch (err: any) {
-    console.error("handleAction error:", err);
-    toast.error(err.message);
-  } finally {
-    setProcessing(false);
-  }
-};
+      toast.success(action === "approve" ? "Plan upgraded successfully!" : "Request rejected.");
+      setSelected(null);
+      setAction(null);
+      setAdminNotes("");
+      fetchRequests();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
       pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
