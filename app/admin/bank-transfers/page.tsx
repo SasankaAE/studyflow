@@ -140,6 +140,7 @@ const handleAction = async () => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Update transfer status — no RLS check needed (RLS disabled)
     const { error: updateError } = await supabase
       .from("bank_transfer_requests")
       .update({
@@ -152,18 +153,24 @@ const handleAction = async () => {
 
     if (updateError) throw new Error(`Transfer update failed: ${updateError.message}`);
 
+    // Update profiles plan if approved
     if (action === "approve") {
-      const { error: planError } = await supabase
+      const { data: planData, error: planError } = await supabase
         .from("profiles")
         .update({
           plan: selected.target_plan,
           plan_updated_at: new Date().toISOString(),
         })
-        .eq("id", selected.user_id);
+        .eq("id", selected.user_id)
+        .select();
 
       if (planError) throw new Error(`Profile update failed: ${planError.message}`);
+      if (!planData || planData.length === 0) {
+        throw new Error("Profile update blocked by RLS — add admin UPDATE policy on profiles table");
+      }
     }
 
+    // Immediately update local state
     setRequests(prev => prev.map(r =>
       r.id === selected.id ? { ...r, status: newStatus } : r
     ));
