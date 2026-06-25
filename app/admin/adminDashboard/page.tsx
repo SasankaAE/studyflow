@@ -279,25 +279,16 @@ function BankTransfersSection({ supabase }: { supabase: ReturnType<typeof create
   const [manualLoading, setManualLoading] = useState(false)
   const [manualResult, setManualResult] = useState<{ name: string; current_plan: string } | null>(null)
 
-  const fetchRequests = async () => {
-    setLoading(true)
-    const { data, error } = await supabase
-      .from("bank_transfer_requests")
-      .select("*")
-      .order("submitted_at", { ascending: false })
+ const fetchRequests = async () => {
+  setLoading(true)
+  const res = await fetch("/api/admin/transfer-requests")
+  if (!res.ok) { toast.error("Failed to load requests"); setLoading(false); return }
+  const data = await res.json()
+  setRequests(data)
+  setLoading(false)
+}
 
-    if (error) { toast.error(error.message); setLoading(false); return }
-
-    const userIds = [...new Set((data ?? []).map((r) => r.user_id))]
-    const { data: profilesData } = await supabase
-      .from("profiles").select("id, email, full_name").in("id", userIds)
-
-    const profileMap = Object.fromEntries((profilesData ?? []).map((p) => [p.id, p]))
-    setRequests((data ?? []).map((r) => ({ ...r, profiles: profileMap[r.user_id] ?? null })))
-    setLoading(false)
-  }
-
-  useEffect(() => { fetchRequests() }, [])
+useEffect(() => { fetchRequests() }, [])
 
  const lookupUser = async () => {
   if (!manualEmail.trim()) { toast.error("Enter an email"); return }
