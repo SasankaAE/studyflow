@@ -9,26 +9,21 @@ const supabaseAdmin = createClient(
 export async function POST(req: Request) {
   const { email } = await req.json()
 
-  const { data: profile, error } = await supabaseAdmin
+  // 1. Find user in auth.users by email
+  const { data: { users }, error: authError } = await supabaseAdmin.auth.admin.listUsers()
+  const authUser = users.find(u => u.email === email.trim())
+
+  if (!authUser) return NextResponse.json({ error: "User not found" }, { status: 404 })
+
+  // 2. Get profile by id
+  const { data: profile } = await supabaseAdmin
     .from("profiles")
-    .select("id, full_name, plan")
-    .eq("email", email.trim())
+    .select("full_name, plan, email")
+    .eq("id", authUser.id)
     .single()
 
-  if (error || !profile) {
-    // fallback: search auth.users directly
-    const { data: { users } } = await supabaseAdmin.auth.admin.listUsers()
-    const authUser = users.find(u => u.email === email.trim())
-    if (!authUser) return NextResponse.json({ error: "User not found" }, { status: 404 })
-
-    return NextResponse.json({
-      name: authUser.email,
-      current_plan: "free"
-    })
-  }
-
   return NextResponse.json({
-    name: profile.full_name || email,
-    current_plan: profile.plan ?? "free"
+    name: profile?.full_name || profile?.email || authUser.email,
+    current_plan: profile?.plan ?? "free"
   })
 }

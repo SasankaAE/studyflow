@@ -299,7 +299,7 @@ function BankTransfersSection({ supabase }: { supabase: ReturnType<typeof create
 
   useEffect(() => { fetchRequests() }, [])
 
-  const lookupUser = async () => {
+ const lookupUser = async () => {
   if (!manualEmail.trim()) { toast.error("Enter an email"); return }
   setManualLoading(true); setManualResult(null)
 
