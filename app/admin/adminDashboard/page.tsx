@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -18,12 +17,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "sonner"
 import {
   ExternalLink, RefreshCw, UserCog, CheckCircle, XCircle,
   Upload, FileText, X, CheckCircle2, AlertCircle,
   LayoutDashboard, CreditCard, FileUp, Menu, LogOut,
-  Users, TrendingUp, Clock,
+  Users, TrendingUp, Clock, ShieldAlert,
 } from "lucide-react"
 import { approveTransfer } from "../actions"
 import { useUploadPdf } from "@/hooks/useUploadPdf"
@@ -48,10 +49,29 @@ type TransferRequest = {
 type Section = "overview" | "bank-transfers" | "upload"
 
 const NAV: { id: Section; label: string; icon: React.ReactNode }[] = [
-  { id: "overview",        label: "Overview",        icon: <LayoutDashboard className="h-4 w-4" /> },
-  { id: "bank-transfers",  label: "Bank Transfers",  icon: <CreditCard className="h-4 w-4" /> },
-  { id: "upload",          label: "Upload Paper",    icon: <FileUp className="h-4 w-4" /> },
+  { id: "overview",       label: "Overview",       icon: <LayoutDashboard className="h-4 w-4" /> },
+  { id: "bank-transfers", label: "Bank Transfers",  icon: <CreditCard className="h-4 w-4" /> },
+  { id: "upload",         label: "Upload Paper",    icon: <FileUp className="h-4 w-4" /> },
 ]
+
+// ─── Logo ─────────────────────────────────────────────────────────────────────
+
+function StudyFlowLogo({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("text-primary", className)}
+    >
+      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+    </svg>
+  )
+}
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
@@ -66,30 +86,31 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F8F8F7]">
-      {/* ── Sidebar ── */}
+    <div className="dark flex min-h-screen bg-background">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/30 md:hidden"
+          className="fixed inset-0 z-20 bg-black/60 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
+      {/* ── Sidebar ── */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-gray-200 bg-white transition-transform duration-200 md:static md:translate-x-0",
+          "fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-border bg-card transition-transform duration-200 md:static md:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Brand */}
-        <div className="flex h-14 items-center gap-2.5 border-b border-gray-100 px-5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-900">
-            <span className="text-[11px] font-bold text-white">SF</span>
-          </div>
+        <div className="flex h-14 items-center gap-2.5 border-b border-border px-5">
+          <StudyFlowLogo className="h-6 w-6" />
           <div>
-            <p className="text-sm font-semibold text-gray-900 leading-tight">StudyFlow</p>
-            <p className="text-[10px] text-gray-400 leading-tight">Admin</p>
+            <p className="text-sm font-semibold text-foreground leading-tight">StudyFlow</p>
+            <div className="flex items-center gap-1 mt-0.5">
+              <ShieldAlert className="h-2.5 w-2.5 text-red-400" />
+              <p className="text-[10px] text-red-400 leading-tight font-medium">Admin</p>
+            </div>
           </div>
         </div>
 
@@ -102,8 +123,8 @@ export default function AdminDashboardPage() {
               className={cn(
                 "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
                 section === item.id
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               )}
             >
               {item.icon}
@@ -113,10 +134,10 @@ export default function AdminDashboardPage() {
         </nav>
 
         {/* Sign out */}
-        <div className="border-t border-gray-100 p-3">
+        <div className="border-t border-border p-3">
           <button
             onClick={handleSignOut}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
           >
             <LogOut className="h-4 w-4" />
             Sign out
@@ -127,14 +148,16 @@ export default function AdminDashboardPage() {
       {/* ── Main content ── */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top bar (mobile) */}
-        <header className="flex h-14 items-center gap-3 border-b border-gray-200 bg-white px-4 md:hidden">
-          <button
+        <header className="flex h-14 items-center gap-3 border-b border-border bg-card px-4 md:hidden">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
             onClick={() => setSidebarOpen(true)}
-            className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100"
           >
             <Menu className="h-5 w-5" />
-          </button>
-          <span className="text-sm font-semibold text-gray-900">
+          </Button>
+          <span className="text-sm font-semibold text-foreground">
             {NAV.find((n) => n.id === section)?.label}
           </span>
         </header>
@@ -170,73 +193,73 @@ function OverviewSection({
         supabase.from("profiles").select("*", { count: "exact", head: true }).eq("plan", "pro"),
         supabase.from("bank_transfer_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
       ])
-      setStats({
-        totalUsers: total ?? 0,
-        proUsers: pro ?? 0,
-        pendingTransfers: pending ?? 0,
-        loading: false,
-      })
+      setStats({ totalUsers: total ?? 0, proUsers: pro ?? 0, pendingTransfers: pending ?? 0, loading: false })
     }
     load()
   }, [])
 
   const cards = [
-    { label: "Total users",       value: stats.totalUsers,       icon: <Users className="h-4 w-4" />,      accent: "text-blue-600",  bg: "bg-blue-50" },
-    { label: "Pro subscribers",   value: stats.proUsers,         icon: <TrendingUp className="h-4 w-4" />, accent: "text-emerald-600", bg: "bg-emerald-50" },
-    { label: "Pending transfers", value: stats.pendingTransfers, icon: <Clock className="h-4 w-4" />,      accent: "text-amber-600", bg: "bg-amber-50" },
+    { label: "Total users",       value: stats.totalUsers,       icon: <Users className="h-4 w-4" />,      badgeClass: "bg-blue-500/10 text-blue-400" },
+    { label: "Pro subscribers",   value: stats.proUsers,         icon: <TrendingUp className="h-4 w-4" />, badgeClass: "bg-emerald-500/10 text-emerald-400" },
+    { label: "Pending transfers", value: stats.pendingTransfers, icon: <Clock className="h-4 w-4" />,      badgeClass: "bg-amber-500/10 text-amber-400" },
   ]
 
   return (
     <div className="space-y-8">
-      {/* Page header */}
       <div>
-        <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
-        <p className="mt-0.5 text-sm text-gray-500">StudyFlow admin overview</p>
+        <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">StudyFlow admin overview</p>
       </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {cards.map((c) => (
-          <div key={c.label} className="rounded-xl border border-gray-200 bg-white p-5">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{c.label}</p>
-              <span className={cn("rounded-lg p-1.5", c.bg, c.accent)}>{c.icon}</span>
-            </div>
-            <p className={cn("mt-3 text-3xl font-semibold", stats.loading ? "text-gray-200 animate-pulse" : "text-gray-900")}>
-              {stats.loading ? "—" : c.value}
-            </p>
-          </div>
+          <Card key={c.label}>
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{c.label}</p>
+                <span className={cn("rounded-lg p-1.5", c.badgeClass)}>{c.icon}</span>
+              </div>
+              <p className={cn("mt-3 text-3xl font-semibold", stats.loading ? "text-muted animate-pulse" : "text-foreground")}>
+                {stats.loading ? "—" : c.value}
+              </p>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {/* Quick actions */}
       <div>
-        <h2 className="mb-3 text-sm font-medium text-gray-700">Quick actions</h2>
+        <h2 className="mb-3 text-sm font-medium text-muted-foreground">Quick actions</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <button
-            onClick={() => onNavigate("bank-transfers")}
-            className="group flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-gray-300 hover:shadow-sm"
-          >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600 group-hover:bg-gray-900 group-hover:text-white transition-colors">
-              <CreditCard className="h-4 w-4" />
-            </span>
-            <div>
-              <p className="text-sm font-medium text-gray-900">Review transfers</p>
-              <p className="text-xs text-gray-400">Approve or reject payment requests</p>
-            </div>
-          </button>
-          <button
-            onClick={() => onNavigate("upload")}
-            className="group flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-gray-300 hover:shadow-sm"
-          >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600 group-hover:bg-gray-900 group-hover:text-white transition-colors">
-              <FileUp className="h-4 w-4" />
-            </span>
-            <div>
-              <p className="text-sm font-medium text-gray-900">Upload paper</p>
-              <p className="text-xs text-gray-400">Add a new PDF to the library</p>
-            </div>
-          </button>
+          {[
+            {
+              section: "bank-transfers" as Section,
+              icon: <CreditCard className="h-4 w-4" />,
+              title: "Review transfers",
+              desc: "Approve or reject payment requests",
+            },
+            {
+              section: "upload" as Section,
+              icon: <FileUp className="h-4 w-4" />,
+              title: "Upload paper",
+              desc: "Add a new PDF to the library",
+            },
+          ].map((item) => (
+            <button
+              key={item.section}
+              onClick={() => onNavigate(item.section)}
+              className="group flex items-center gap-4 rounded-xl border border-border bg-card p-4 text-left transition hover:border-primary/50 hover:bg-accent"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                {item.icon}
+              </span>
+              <div>
+                <p className="text-sm font-medium text-foreground">{item.title}</p>
+                <p className="text-xs text-muted-foreground">{item.desc}</p>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
     </div>
@@ -248,7 +271,6 @@ function OverviewSection({
 function BankTransfersSection({ supabase }: { supabase: ReturnType<typeof createClient> }) {
   const [requests, setRequests] = useState<TransferRequest[]>([])
   const [loading, setLoading] = useState(true)
-
   const [selected, setSelected] = useState<TransferRequest | null>(null)
   const [action, setAction] = useState<"approve" | "reject" | null>(null)
   const [adminNotes, setAdminNotes] = useState("")
@@ -329,13 +351,13 @@ function BankTransfersSection({ supabase }: { supabase: ReturnType<typeof create
   }
 
   const statusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      pending:  "bg-amber-100 text-amber-800 border-amber-200",
-      approved: "bg-emerald-100 text-emerald-800 border-emerald-200",
-      rejected: "bg-red-100 text-red-800 border-red-200",
+    const variants: Record<string, string> = {
+      pending:  "bg-amber-500/10 text-amber-400 border-amber-500/20",
+      approved: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+      rejected: "bg-red-500/10 text-red-400 border-red-500/20",
     }
     return (
-      <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium", styles[status])}>
+      <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium", variants[status])}>
         {status}
       </span>
     )
@@ -352,15 +374,15 @@ function BankTransfersSection({ supabase }: { supabase: ReturnType<typeof create
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Bank transfers</h1>
-          <p className="mt-0.5 text-sm text-gray-500">Review and approve manual payment requests</p>
+          <h1 className="text-xl font-semibold text-foreground">Bank transfers</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">Review and approve manual payment requests</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={fetchRequests} disabled={loading} className="flex-1 sm:flex-none">
             <RefreshCw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
             Refresh
           </Button>
-          <Button size="sm" onClick={() => setManualOpen(true)} className="flex-1 sm:flex-none bg-gray-900 hover:bg-gray-800">
+          <Button size="sm" onClick={() => setManualOpen(true)} className="flex-1 sm:flex-none">
             <UserCog className="mr-2 h-4 w-4" />
             Manual update
           </Button>
@@ -370,57 +392,57 @@ function BankTransfersSection({ supabase }: { supabase: ReturnType<typeof create
       {/* Stat strip */}
       <div className="grid grid-cols-3 gap-3">
         {(["pending", "approved", "rejected"] as const).map((s) => (
-          <div key={s} className="rounded-xl border border-gray-200 bg-white p-4">
-            <p className="text-2xl font-semibold text-gray-900">{counts[s]}</p>
-            <p className="mt-0.5 text-xs capitalize text-gray-400">{s}</p>
-          </div>
+          <Card key={s}>
+            <CardContent className="p-4">
+              <p className="text-2xl font-semibold text-foreground">{counts[s]}</p>
+              <p className="mt-0.5 text-xs capitalize text-muted-foreground">{s}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {/* Desktop table */}
-      <div className="hidden overflow-hidden rounded-xl border border-gray-200 bg-white md:block">
+      <Card className="hidden md:block">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50/70">
-              <TableHead className="text-xs font-medium text-gray-500">Reference</TableHead>
-              <TableHead className="text-xs font-medium text-gray-500">User</TableHead>
-              <TableHead className="text-xs font-medium text-gray-500">Plan</TableHead>
-              <TableHead className="text-xs font-medium text-gray-500">Amount</TableHead>
-              <TableHead className="text-xs font-medium text-gray-500">Status</TableHead>
-              <TableHead className="text-xs font-medium text-gray-500">Date</TableHead>
-              <TableHead className="text-xs font-medium text-gray-500">Actions</TableHead>
+            <TableRow>
+              <TableHead>Reference</TableHead>
+              <TableHead>User</TableHead>
+              <TableHead>Plan</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-10 text-center text-sm text-gray-400">Loading…</TableCell>
+                <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">Loading…</TableCell>
               </TableRow>
             ) : requests.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-10 text-center text-sm text-gray-400">No requests yet</TableCell>
+                <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">No requests yet</TableCell>
               </TableRow>
             ) : requests.map((req) => (
-              <TableRow key={req.id} className="hover:bg-gray-50/50">
-                <TableCell className="font-mono text-xs text-gray-500">{req.reference_number}</TableCell>
+              <TableRow key={req.id}>
+                <TableCell className="font-mono text-xs text-muted-foreground">{req.reference_number}</TableCell>
                 <TableCell>
-                  <p className="text-sm font-medium text-gray-900">{req.profiles?.full_name || "—"}</p>
-                  <p className="text-xs text-gray-400">{req.profiles?.email}</p>
+                  <p className="text-sm font-medium text-foreground">{req.profiles?.full_name || "—"}</p>
+                  <p className="text-xs text-muted-foreground">{req.profiles?.email}</p>
                 </TableCell>
                 <TableCell>
-                  <span className="inline-flex items-center rounded-md border border-gray-200 px-2 py-0.5 text-xs font-medium capitalize text-gray-600">
-                    {req.target_plan}
-                  </span>
+                  <Badge variant="outline" className="capitalize">{req.target_plan}</Badge>
                 </TableCell>
-                <TableCell className="text-sm font-medium text-gray-900">LKR {req.amount.toFixed(2)}</TableCell>
+                <TableCell className="text-sm font-medium text-foreground">LKR {req.amount.toFixed(2)}</TableCell>
                 <TableCell>{statusBadge(req.status)}</TableCell>
-                <TableCell className="text-xs text-gray-400">
+                <TableCell className="text-xs text-muted-foreground">
                   {new Date(req.submitted_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1">
                     {req.slip_url && (
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-gray-400 hover:text-gray-700" onClick={() => openSlip(req.slip_url!)}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openSlip(req.slip_url!)}>
                         <ExternalLink className="h-3.5 w-3.5" />
                       </Button>
                     )}
@@ -442,51 +464,53 @@ function BankTransfersSection({ supabase }: { supabase: ReturnType<typeof create
             ))}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
       {/* Mobile cards */}
       <div className="space-y-3 md:hidden">
         {loading ? (
-          <div className="rounded-xl border border-gray-200 bg-white py-10 text-center text-sm text-gray-400">Loading…</div>
+          <Card><CardContent className="py-10 text-center text-sm text-muted-foreground">Loading…</CardContent></Card>
         ) : requests.length === 0 ? (
-          <div className="rounded-xl border border-gray-200 bg-white py-10 text-center text-sm text-gray-400">No requests yet</div>
+          <Card><CardContent className="py-10 text-center text-sm text-muted-foreground">No requests yet</CardContent></Card>
         ) : requests.map((req) => (
-          <div key={req.id} className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-mono text-xs text-gray-400 truncate">{req.reference_number}</span>
-              {statusBadge(req.status)}
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">{req.profiles?.full_name || "—"}</p>
-              <p className="text-xs text-gray-400">{req.profiles?.email}</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-              <span className="text-gray-400 text-xs">Plan: <span className="capitalize text-gray-700">{req.target_plan}</span></span>
-              <span className="text-gray-400 text-xs">LKR <span className="text-gray-700">{req.amount.toFixed(2)}</span></span>
-              <span className="text-xs text-gray-400">{new Date(req.submitted_at).toLocaleDateString()}</span>
-            </div>
-            {(req.slip_url || req.status === "pending") && (
-              <div className="flex gap-2 pt-1">
-                {req.slip_url && (
-                  <Button variant="outline" size="sm" className="h-8 flex-1 text-xs" onClick={() => openSlip(req.slip_url!)}>
-                    <ExternalLink className="mr-1.5 h-3.5 w-3.5" />View slip
-                  </Button>
-                )}
-                {req.status === "pending" && (
-                  <>
-                    <Button size="sm" className="h-8 flex-1 bg-emerald-600 text-xs hover:bg-emerald-700"
-                      onClick={() => { setSelected(req); setAction("approve") }}>
-                      <CheckCircle className="mr-1.5 h-3.5 w-3.5" />Approve
-                    </Button>
-                    <Button size="sm" variant="destructive" className="h-8 flex-1 text-xs"
-                      onClick={() => { setSelected(req); setAction("reject") }}>
-                      <XCircle className="mr-1.5 h-3.5 w-3.5" />Reject
-                    </Button>
-                  </>
-                )}
+          <Card key={req.id}>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono text-xs text-muted-foreground truncate">{req.reference_number}</span>
+                {statusBadge(req.status)}
               </div>
-            )}
-          </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">{req.profiles?.full_name || "—"}</p>
+                <p className="text-xs text-muted-foreground">{req.profiles?.email}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                <span className="text-xs text-muted-foreground">Plan: <span className="capitalize text-foreground">{req.target_plan}</span></span>
+                <span className="text-xs text-muted-foreground">LKR <span className="text-foreground">{req.amount.toFixed(2)}</span></span>
+                <span className="text-xs text-muted-foreground">{new Date(req.submitted_at).toLocaleDateString()}</span>
+              </div>
+              {(req.slip_url || req.status === "pending") && (
+                <div className="flex gap-2 pt-1">
+                  {req.slip_url && (
+                    <Button variant="outline" size="sm" className="h-8 flex-1 text-xs" onClick={() => openSlip(req.slip_url!)}>
+                      <ExternalLink className="mr-1.5 h-3.5 w-3.5" />View slip
+                    </Button>
+                  )}
+                  {req.status === "pending" && (
+                    <>
+                      <Button size="sm" className="h-8 flex-1 bg-emerald-600 text-xs hover:bg-emerald-700"
+                        onClick={() => { setSelected(req); setAction("approve") }}>
+                        <CheckCircle className="mr-1.5 h-3.5 w-3.5" />Approve
+                      </Button>
+                      <Button size="sm" variant="destructive" className="h-8 flex-1 text-xs"
+                        onClick={() => { setSelected(req); setAction("reject") }}>
+                        <XCircle className="mr-1.5 h-3.5 w-3.5" />Reject
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         ))}
       </div>
 
@@ -498,25 +522,26 @@ function BankTransfersSection({ supabase }: { supabase: ReturnType<typeof create
           </DialogHeader>
           {selected && (
             <div className="space-y-3 text-sm">
-              <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 space-y-1.5">
-                <p><span className="text-gray-400">User:</span> <span className="break-all text-gray-900">{selected.profiles?.email}</span></p>
-                <p><span className="text-gray-400">Reference:</span> <span className="font-mono text-xs break-all text-gray-700">{selected.reference_number}</span></p>
-                <p><span className="text-gray-400">Plan:</span> current → <strong className="capitalize">{selected.target_plan}</strong></p>
+              <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-1.5">
+                <p><span className="text-muted-foreground">User:</span> <span className="break-all text-foreground">{selected.profiles?.email}</span></p>
+                <p><span className="text-muted-foreground">Reference:</span> <span className="font-mono text-xs break-all text-foreground">{selected.reference_number}</span></p>
+                <p><span className="text-muted-foreground">Plan:</span> current → <strong className="capitalize text-foreground">{selected.target_plan}</strong></p>
               </div>
               {action === "approve" && (
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
+                <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-400">
                   This will immediately update the user's plan to <strong>{selected.target_plan}</strong>.
                 </div>
               )}
               <div>
-                <Label className="text-xs text-gray-500 uppercase tracking-wide">Admin notes (optional)</Label>
+                <Label className="text-xs text-muted-foreground uppercase tracking-wide">Admin notes (optional)</Label>
                 <Textarea placeholder="Add a note for your records…" value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)} className="mt-1.5 text-sm" rows={3} />
               </div>
             </div>
           )}
           <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:gap-0">
-            <Button variant="outline" className="w-full sm:w-auto" onClick={() => { setSelected(null); setAction(null); setAdminNotes("") }}>
+            <Button variant="outline" className="w-full sm:w-auto"
+              onClick={() => { setSelected(null); setAction(null); setAdminNotes("") }}>
               Cancel
             </Button>
             <Button onClick={() => handleAction(action!)} disabled={processing || !action}
@@ -529,15 +554,15 @@ function BankTransfersSection({ supabase }: { supabase: ReturnType<typeof create
       </Dialog>
 
       {/* Manual plan dialog */}
-      <Dialog open={manualOpen} onOpenChange={(o) => { setManualOpen(o); setManualEmail(""); setManualResult(null) }}>
+      <Dialog open={manualOpen} onOpenChange={(o) => { setManualOpen(o); if (!o) { setManualEmail(""); setManualResult(null) } }}>
         <DialogContent className="mx-4 max-w-md rounded-xl sm:mx-auto">
           <DialogHeader>
             <DialogTitle>Manual plan update</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-sm">
-            <p className="text-xs text-gray-400">Change any user's plan directly — e.g. after confirming a transfer manually.</p>
+            <p className="text-xs text-muted-foreground">Change any user's plan directly — e.g. after confirming a transfer manually.</p>
             <div className="space-y-1.5">
-              <Label className="text-xs uppercase tracking-wide text-gray-400">User email</Label>
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">User email</Label>
               <div className="flex gap-2">
                 <Input placeholder="user@example.com" value={manualEmail}
                   onChange={(e) => { setManualEmail(e.target.value); setManualResult(null) }}
@@ -549,13 +574,13 @@ function BankTransfersSection({ supabase }: { supabase: ReturnType<typeof create
               </div>
             </div>
             {manualResult && (
-              <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 space-y-1 text-sm">
-                <p><span className="text-gray-400">Name:</span> <span className="text-gray-900">{manualResult.name}</span></p>
-                <p><span className="text-gray-400">Current plan:</span> <span className="ml-1 capitalize font-medium text-gray-900">{manualResult.current_plan}</span></p>
+              <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-1">
+                <p><span className="text-muted-foreground">Name:</span> <span className="text-foreground">{manualResult.name}</span></p>
+                <p><span className="text-muted-foreground">Current plan:</span> <span className="ml-1 capitalize font-medium text-foreground">{manualResult.current_plan}</span></p>
               </div>
             )}
             <div className="space-y-1.5">
-              <Label className="text-xs uppercase tracking-wide text-gray-400">Set plan to</Label>
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">Set plan to</Label>
               <Select value={manualPlan} onValueChange={(v) => setManualPlan(v as "free" | "pro")}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -565,14 +590,14 @@ function BankTransfersSection({ supabase }: { supabase: ReturnType<typeof create
               </Select>
             </div>
             {manualResult?.current_plan === manualPlan && (
-              <p className="text-xs text-amber-600">User is already on the <strong>{manualPlan}</strong> plan.</p>
+              <p className="text-xs text-amber-400">User is already on the <strong>{manualPlan}</strong> plan.</p>
             )}
           </div>
           <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:gap-0">
             <Button variant="outline" className="w-full sm:w-auto" onClick={() => setManualOpen(false)}>Cancel</Button>
             <Button onClick={handleManualUpdate}
               disabled={manualLoading || !manualResult || manualResult.current_plan === manualPlan}
-              className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800">
+              className="w-full sm:w-auto">
               {manualLoading ? "Updating…" : `Set to ${manualPlan}`}
             </Button>
           </DialogFooter>
@@ -619,96 +644,101 @@ function UploadSection() {
 
   return (
     <div className="space-y-6 max-w-xl">
-      {/* Header */}
       <div>
-        <h1 className="text-xl font-semibold text-gray-900">Upload paper</h1>
-        <p className="mt-0.5 text-sm text-gray-500">Admin only — uploaded PDFs are visible to all users.</p>
+        <h1 className="text-xl font-semibold text-foreground">Upload paper</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">Admin only — uploaded PDFs are visible to all users.</p>
       </div>
 
       {/* Drop zone */}
-      <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <p className="mb-3 text-sm font-medium text-gray-700">PDF file</p>
-        <div
-          className={cn(
-            "flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-10 transition-colors",
-            dragging ? "border-gray-900 bg-gray-50" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/50",
-            file && "border-gray-900 border-solid bg-gray-50"
-          )}
-          onClick={() => fileInputRef.current?.click()}
-          onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={handleDrop}
-        >
-          <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden"
-            onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
-          {file ? (
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-900">
-                <FileText className="h-5 w-5 text-white" />
+      <Card>
+        <CardContent className="p-5">
+          <p className="mb-3 text-sm font-medium text-foreground">PDF file</p>
+          <div
+            className={cn(
+              "flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-10 transition-colors",
+              dragging ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/50 hover:bg-accent/30",
+              file && "border-primary border-solid bg-primary/5"
+            )}
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDrop}
+          >
+            <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden"
+              onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+            {file ? (
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary">
+                  <FileText className="h-5 w-5 text-primary-foreground" />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-foreground max-w-xs">{file.name}</p>
+                  <p className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
+                </div>
+                <Button variant="ghost" size="icon" className="h-7 w-7 ml-2 shrink-0 hover:text-destructive"
+                  onClick={(e) => { e.stopPropagation(); setFile(null) }}>
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-gray-900 max-w-xs">{file.name}</p>
-                <p className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
+            ) : (
+              <div className="text-center space-y-2">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                  <Upload className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Drop a PDF here or{" "}
+                  <span className="font-medium text-foreground underline underline-offset-2">browse files</span>
+                </p>
+                <p className="text-xs text-muted-foreground">PDF only · max 50 MB</p>
               </div>
-              <Button variant="ghost" size="icon" className="h-7 w-7 ml-2 shrink-0 text-gray-400 hover:text-red-500"
-                onClick={(e) => { e.stopPropagation(); setFile(null) }}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <div className="text-center space-y-2">
-              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-                <Upload className="h-5 w-5 text-gray-500" />
-              </div>
-              <p className="text-sm text-gray-500">
-                Drop a PDF here or{" "}
-                <span className="font-medium text-gray-900 underline underline-offset-2">browse files</span>
-              </p>
-              <p className="text-xs text-gray-400">PDF only · max 50 MB</p>
-            </div>
-          )}
-        </div>
-      </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Metadata */}
-      <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
-        <p className="text-sm font-medium text-gray-700">Metadata</p>
-        <div className="space-y-1.5">
-          <Label htmlFor="name" className="text-xs uppercase tracking-wide text-gray-400">Title</Label>
-          <Input id="name" placeholder="Attention Is All You Need" value={form.name} onChange={handleChange} />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
+      <Card>
+        <CardContent className="p-5 space-y-4">
+          <p className="text-sm font-medium text-foreground">Metadata</p>
           <div className="space-y-1.5">
-            <Label htmlFor="year" className="text-xs uppercase tracking-wide text-gray-400">Year</Label>
-            <Input id="year" type="number" placeholder="2024" value={form.year} onChange={handleChange} />
+            <Label htmlFor="name" className="text-xs uppercase tracking-wide text-muted-foreground">Title</Label>
+            <Input id="name" placeholder="Attention Is All You Need" value={form.name} onChange={handleChange} />
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs uppercase tracking-wide text-gray-400">Category</Label>
-            <Select value={form.category} onValueChange={(v) => setForm((p) => ({ ...p, category: v }))}>
-              <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="NLP">NLP</SelectItem>
-                <SelectItem value="CV">Computer Vision</SelectItem>
-                <SelectItem value="LLM">LLMs</SelectItem>
-                <SelectItem value="Safety">Safety</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="year" className="text-xs uppercase tracking-wide text-muted-foreground">Year</Label>
+              <Input id="year" type="number" placeholder="2024" value={form.year} onChange={handleChange} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">Category</Label>
+              <Select value={form.category} onValueChange={(v) => setForm((p) => ({ ...p, category: v }))}>
+                <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NLP">NLP</SelectItem>
+                  <SelectItem value="CV">Computer Vision</SelectItem>
+                  <SelectItem value="LLM">LLMs</SelectItem>
+                  <SelectItem value="Safety">Safety</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {error && (
-        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
-          <AlertCircle className="h-4 w-4 shrink-0" />{error}
-        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
       {success && (
-        <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-700">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />PDF uploaded successfully.
-        </div>
+        <Alert className="border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+          <CheckCircle2 className="h-4 w-4" />
+          <AlertDescription>PDF uploaded successfully.</AlertDescription>
+        </Alert>
       )}
 
-      <Button className="w-full bg-gray-900 hover:bg-gray-800" size="lg" disabled={!file || uploading} onClick={handleSubmit}>
+      <Button className="w-full" size="lg" disabled={!file || uploading} onClick={handleSubmit}>
         {uploading ? "Uploading…" : "Upload PDF"}
       </Button>
     </div>
