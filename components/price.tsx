@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Check, Zap } from "lucide-react";
+import { Check, Zap, Landmark } from "lucide-react";
 import Link from "next/link";
 
 const plans = [
@@ -34,7 +34,7 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "$5",
+    price: "LKR 990",
     period: "per month",
     description: "For students who need more power.",
     badge: "Most Popular",
@@ -137,7 +137,7 @@ export function PricingSection() {
               </ul>
             </CardContent>
 
-            <CardFooter className="pt-6">
+            <CardFooter className="flex flex-col gap-3 pt-6">
               <Button
                 variant={plan.variant}
                 size="lg"
@@ -146,6 +146,31 @@ export function PricingSection() {
               >
                 <Link href={plan.href}>{plan.cta}</Link>
               </Button>
+
+              {/* Bank Transfer option — Pro only */}
+              {plan.highlight && (
+                <>
+                  <div className="flex items-center gap-2 w-full">
+                    <Separator className="flex-1" />
+                    <span className="text-xs text-muted-foreground shrink-0">or pay via</span>
+                    <Separator className="flex-1" />
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full text-base gap-2 border-dashed"
+                    asChild
+                  >
+                    <Link href="/upgrade/bank-transfer">
+                      <Landmark className="h-4 w-4" />
+                      Bank Transfer (LKR 990)
+                    </Link>
+                  </Button>
+                  <p className="text-center text-xs text-muted-foreground">
+                    Manual verification · activated within 1–2 business days
+                  </p>
+                </>
+              )}
             </CardFooter>
           </Card>
         ))}
