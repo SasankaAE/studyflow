@@ -31,8 +31,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { ExternalLink, RefreshCw, UserCog } from "lucide-react"
-import { approveTransfer } from "../actions";
+import { ExternalLink, RefreshCw, UserCog, CheckCircle, XCircle } from "lucide-react"
+import { approveTransfer } from "../actions"
 
 type TransferRequest = {
   id: string
@@ -53,13 +53,11 @@ export default function AdminBankTransfersPage() {
   const [requests, setRequests] = useState<TransferRequest[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Transfer request approve/reject
   const [selected, setSelected] = useState<TransferRequest | null>(null)
   const [action, setAction] = useState<"approve" | "reject" | null>(null)
   const [adminNotes, setAdminNotes] = useState("")
   const [processing, setProcessing] = useState(false)
 
-  // Manual plan update
   const [manualOpen, setManualOpen] = useState(false)
   const [manualEmail, setManualEmail] = useState("")
   const [manualPlan, setManualPlan] = useState<"free" | "pro">("pro")
@@ -105,7 +103,6 @@ export default function AdminBankTransfersPage() {
     fetchRequests()
   }, [])
 
-  // Lookup user by email before committing manual update
   const lookupUser = async () => {
     if (!manualEmail.trim()) {
       toast.error("Enter an email")
@@ -165,60 +162,57 @@ export default function AdminBankTransfersPage() {
   }
 
   const handleAction = async (confirmedAction: "approve" | "reject") => {
-  if (!selected) return;
-  setProcessing(true);
-  const newStatus = confirmedAction === "approve" ? "approved" : "rejected";
+    if (!selected) return
+    setProcessing(true)
+    const newStatus = confirmedAction === "approve" ? "approved" : "rejected"
 
-  try {
-    await approveTransfer(
-      selected.id,
-      selected.user_id,
-      selected.target_plan,
-      adminNotes || null,
-      confirmedAction
-    );
+    try {
+      await approveTransfer(
+        selected.id,
+        selected.user_id,
+        selected.target_plan,
+        adminNotes || null,
+        confirmedAction
+      )
 
-    setRequests(prev => prev.map(r =>
-      r.id === selected.id ? { ...r, status: newStatus } : r
-    ));
+      setRequests((prev) =>
+        prev.map((r) => (r.id === selected.id ? { ...r, status: newStatus } : r))
+      )
 
-    toast.success(confirmedAction === "approve" ? "✅ Plan upgraded to Pro!" : "Request rejected.");
-    setSelected(null);
-    setAction(null);
-    setAdminNotes("");
-    fetchRequests();
-
-  } catch (err: any) {
-    alert(`ERROR: ${err.message}`);
-    toast.error(err.message);
-  } finally {
-    setProcessing(false);
+      toast.success(
+        confirmedAction === "approve" ? "✅ Plan upgraded to Pro!" : "Request rejected."
+      )
+      setSelected(null)
+      setAction(null)
+      setAdminNotes("")
+      fetchRequests()
+    } catch (err: any) {
+      alert(`ERROR: ${err.message}`)
+      toast.error(err.message)
+    } finally {
+      setProcessing(false)
+    }
   }
-};
 
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
-      pending:
-        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-      approved:
-        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+      pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+      approved: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
       rejected: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
     }
     return (
-      <span
-        className={`rounded-full px-2 py-1 text-xs font-medium ${map[status]}`}
-      >
+      <span className={`rounded-full px-2 py-1 text-xs font-medium ${map[status]}`}>
         {status}
       </span>
     )
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 p-4 sm:space-y-6 sm:p-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Bank Transfer Requests</h1>
+          <h1 className="text-xl font-bold sm:text-2xl">Bank Transfer Requests</h1>
           <p className="text-sm text-muted-foreground">
             Review and approve manual payment requests
           </p>
@@ -229,35 +223,38 @@ export default function AdminBankTransfersPage() {
             size="sm"
             onClick={fetchRequests}
             disabled={loading}
+            className="flex-1 sm:flex-none"
           >
-            <RefreshCw
-              className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
-            />
+            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          <Button size="sm" onClick={() => setManualOpen(true)}>
+          <Button
+            size="sm"
+            onClick={() => setManualOpen(true)}
+            className="flex-1 sm:flex-none"
+          >
             <UserCog className="mr-2 h-4 w-4" />
-            Manual Plan Update
+            Manual Update
           </Button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-3 sm:gap-4">
         {(["pending", "approved", "rejected"] as const).map((s) => (
           <Card key={s}>
-            <CardContent className="pt-4">
-              <p className="text-2xl font-bold">
+            <CardContent className="p-3 pt-3 sm:pt-4">
+              <p className="text-xl font-bold sm:text-2xl">
                 {requests.filter((r) => r.status === s).length}
               </p>
-              <p className="text-sm text-muted-foreground capitalize">{s}</p>
+              <p className="text-xs text-muted-foreground capitalize sm:text-sm">{s}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Table */}
-      <Card>
+      {/* Desktop Table */}
+      <Card className="hidden md:block">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -274,35 +271,23 @@ export default function AdminBankTransfersPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="py-8 text-center text-muted-foreground"
-                  >
+                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : requests.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="py-8 text-center text-muted-foreground"
-                  >
+                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                     No requests yet
                   </TableCell>
                 </TableRow>
               ) : (
                 requests.map((req) => (
                   <TableRow key={req.id}>
-                    <TableCell className="font-mono text-xs">
-                      {req.reference_number}
-                    </TableCell>
+                    <TableCell className="font-mono text-xs">{req.reference_number}</TableCell>
                     <TableCell>
-                      <p className="text-sm font-medium">
-                        {req.profiles?.full_name || "—"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {req.profiles?.email}
-                      </p>
+                      <p className="text-sm font-medium">{req.profiles?.full_name || "—"}</p>
+                      <p className="text-xs text-muted-foreground">{req.profiles?.email}</p>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="capitalize">
@@ -331,10 +316,7 @@ export default function AdminBankTransfersPage() {
                             <Button
                               size="sm"
                               className="h-7 bg-green-600 text-xs hover:bg-green-700"
-                              onClick={() => {
-                                setSelected(req)
-                                setAction("approve")
-                              }}
+                              onClick={() => { setSelected(req); setAction("approve") }}
                             >
                               Approve
                             </Button>
@@ -342,10 +324,7 @@ export default function AdminBankTransfersPage() {
                               size="sm"
                               variant="destructive"
                               className="h-7 text-xs"
-                              onClick={() => {
-                                setSelected(req)
-                                setAction("reject")
-                              }}
+                              onClick={() => { setSelected(req); setAction("reject") }}
                             >
                               Reject
                             </Button>
@@ -361,19 +340,106 @@ export default function AdminBankTransfersPage() {
         </CardContent>
       </Card>
 
-      {/* Approve/Reject Dialog */}
+      {/* Mobile Cards */}
+      <div className="space-y-3 md:hidden">
+        {loading ? (
+          <Card>
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              Loading...
+            </CardContent>
+          </Card>
+        ) : requests.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              No requests yet
+            </CardContent>
+          </Card>
+        ) : (
+          requests.map((req) => (
+            <Card key={req.id}>
+              <CardContent className="p-4 space-y-3">
+                {/* Top row: ref + status */}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-xs text-muted-foreground truncate">
+                    {req.reference_number}
+                  </span>
+                  {statusBadge(req.status)}
+                </div>
+
+                {/* User info */}
+                <div>
+                  <p className="text-sm font-medium">{req.profiles?.full_name || "—"}</p>
+                  <p className="text-xs text-muted-foreground">{req.profiles?.email}</p>
+                </div>
+
+                {/* Plan + amount + date */}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                  <span>
+                    <span className="text-muted-foreground">Plan: </span>
+                    <Badge variant="outline" className="capitalize ml-1">
+                      {req.target_plan}
+                    </Badge>
+                  </span>
+                  <span>
+                    <span className="text-muted-foreground">Amount: </span>
+                    LKR {req.amount.toFixed(2)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(req.submitted_at).toLocaleDateString()}
+                  </span>
+                </div>
+
+                {/* Actions */}
+                {(req.slip_url || req.status === "pending") && (
+                  <div className="flex gap-2 pt-1">
+                    {req.slip_url && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 flex-1 text-xs"
+                        onClick={() => openSlip(req.slip_url!)}
+                      >
+                        <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                        View Slip
+                      </Button>
+                    )}
+                    {req.status === "pending" && (
+                      <>
+                        <Button
+                          size="sm"
+                          className="h-9 flex-1 bg-green-600 text-xs hover:bg-green-700"
+                          onClick={() => { setSelected(req); setAction("approve") }}
+                        >
+                          <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="h-9 flex-1 text-xs"
+                          onClick={() => { setSelected(req); setAction("reject") }}
+                        >
+                          <XCircle className="mr-1.5 h-3.5 w-3.5" />
+                          Reject
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
       {/* Approve/Reject Dialog */}
       <Dialog
         open={!!selected}
         onOpenChange={(open) => {
-          if (!open) {
-            setSelected(null)
-            setAction(null)
-            setAdminNotes("")
-          }
+          if (!open) { setSelected(null); setAction(null); setAdminNotes("") }
         }}
       >
-        <DialogContent>
+        <DialogContent className="mx-4 max-w-md rounded-lg sm:mx-auto">
           <DialogHeader>
             <DialogTitle>
               {action === "approve" ? "Approve Payment" : "Reject Request"}
@@ -383,11 +449,11 @@ export default function AdminBankTransfersPage() {
             <div className="space-y-3 text-sm">
               <p>
                 <span className="text-muted-foreground">User:</span>{" "}
-                {selected.profiles?.email}
+                <span className="break-all">{selected.profiles?.email}</span>
               </p>
               <p>
                 <span className="text-muted-foreground">Reference:</span>{" "}
-                <span className="font-mono">{selected.reference_number}</span>
+                <span className="font-mono text-xs break-all">{selected.reference_number}</span>
               </p>
               <p>
                 <span className="text-muted-foreground">Plan change:</span>{" "}
@@ -411,23 +477,18 @@ export default function AdminBankTransfersPage() {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:gap-0">
             <Button
               variant="outline"
-              onClick={() => {
-                setSelected(null)
-                setAction(null)
-                setAdminNotes("")
-              }}
+              className="w-full sm:w-auto"
+              onClick={() => { setSelected(null); setAction(null); setAdminNotes("") }}
             >
               Cancel
             </Button>
             <Button
               onClick={() => handleAction(action!)}
               disabled={processing || !action}
-              className={
-                action === "approve" ? "bg-green-600 hover:bg-green-700" : ""
-              }
+              className={`w-full sm:w-auto ${action === "approve" ? "bg-green-600 hover:bg-green-700" : ""}`}
               variant={action === "reject" ? "destructive" : "default"}
             >
               {processing
@@ -449,45 +510,41 @@ export default function AdminBankTransfersPage() {
           setManualResult(null)
         }}
       >
-        <DialogContent>
+        <DialogContent className="mx-4 max-w-md rounded-lg sm:mx-auto">
           <DialogHeader>
             <DialogTitle>Manual Plan Update</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-sm">
             <p className="text-xs text-muted-foreground">
-              Use this to manually change any user's plan — e.g. after
-              confirming a bank transfer directly.
+              Use this to manually change any user's plan — e.g. after confirming a bank
+              transfer directly.
             </p>
 
-            {/* Email lookup */}
             <div className="space-y-1">
               <Label>User Email</Label>
               <div className="flex gap-2">
                 <Input
                   placeholder="user@example.com"
                   value={manualEmail}
-                  onChange={(e) => {
-                    setManualEmail(e.target.value)
-                    setManualResult(null)
-                  }}
+                  onChange={(e) => { setManualEmail(e.target.value); setManualResult(null) }}
                   onKeyDown={(e) => e.key === "Enter" && lookupUser()}
+                  className="min-w-0 flex-1"
                 />
                 <Button
                   variant="outline"
                   onClick={lookupUser}
                   disabled={manualLoading}
+                  className="shrink-0"
                 >
                   {manualLoading ? "..." : "Lookup"}
                 </Button>
               </div>
             </div>
 
-            {/* User preview */}
             {manualResult && (
               <div className="space-y-1 rounded bg-muted p-3">
                 <p>
-                  <span className="text-muted-foreground">Name:</span>{" "}
-                  {manualResult.name}
+                  <span className="text-muted-foreground">Name:</span> {manualResult.name}
                 </p>
                 <p>
                   <span className="text-muted-foreground">Current plan:</span>{" "}
@@ -498,7 +555,6 @@ export default function AdminBankTransfersPage() {
               </div>
             )}
 
-            {/* Plan selector */}
             <div className="space-y-1">
               <Label>Set Plan To</Label>
               <Select
@@ -521,17 +577,18 @@ export default function AdminBankTransfersPage() {
               </p>
             )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setManualOpen(false)}>
+          <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:gap-0">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setManualOpen(false)}
+            >
               Cancel
             </Button>
             <Button
               onClick={handleManualUpdate}
-              disabled={
-                manualLoading ||
-                !manualResult ||
-                manualResult.current_plan === manualPlan
-              }
+              disabled={manualLoading || !manualResult || manualResult.current_plan === manualPlan}
+              className="w-full sm:w-auto"
             >
               {manualLoading ? "Updating..." : `Set to ${manualPlan}`}
             </Button>
