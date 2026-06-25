@@ -187,16 +187,13 @@ function OverviewSection({
   })
 
   useEffect(() => {
-    async function load() {
-      const [{ count: total }, { count: pro }, { count: pending }] = await Promise.all([
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("profiles").select("*", { count: "exact", head: true }).eq("plan", "pro"),
-        supabase.from("bank_transfer_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
-      ])
-      setStats({ totalUsers: total ?? 0, proUsers: pro ?? 0, pendingTransfers: pending ?? 0, loading: false })
-    }
-    load()
-  }, [])
+  async function load() {
+    const res = await fetch("/api/admin/stats")
+    const data = await res.json()
+    setStats({ ...data, loading: false })
+  }
+  load()
+}, [])
 
   const cards = [
     { label: "Total users",       value: stats.totalUsers,       icon: <Users className="h-4 w-4" />,      badgeClass: "bg-blue-500/10 text-blue-400" },
