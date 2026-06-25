@@ -300,15 +300,22 @@ function BankTransfersSection({ supabase }: { supabase: ReturnType<typeof create
   useEffect(() => { fetchRequests() }, [])
 
   const lookupUser = async () => {
-    if (!manualEmail.trim()) { toast.error("Enter an email"); return }
-    setManualLoading(true); setManualResult(null)
-    const { data, error } = await supabase
-      .from("profiles").select("id, full_name, plan, email")
-      .eq("email", manualEmail.trim()).single()
-    if (error || !data) { toast.error("User not found") }
-    else setManualResult({ name: data.full_name || data.email, current_plan: data.plan ?? "free" })
-    setManualLoading(false)
+  if (!manualEmail.trim()) { toast.error("Enter an email"); return }
+  setManualLoading(true); setManualResult(null)
+
+  const res = await fetch("/api/admin/lookup-user", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: manualEmail.trim() })
+  })
+
+  if (!res.ok) { toast.error("User not found") }
+  else {
+    const data = await res.json()
+    setManualResult({ name: data.name, current_plan: data.current_plan })
   }
+  setManualLoading(false)
+}
 
   const handleManualUpdate = async () => {
     if (!manualEmail.trim() || !manualResult) return
