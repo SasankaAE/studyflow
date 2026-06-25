@@ -432,7 +432,7 @@ function BankTransfersSection({ supabase }: { supabase: ReturnType<typeof create
               <TableRow key={req.id}>
                 <TableCell className="font-mono text-xs text-muted-foreground">{req.reference_number}</TableCell>
                 <TableCell>
-                  <p className="text-sm font-medium text-foreground">{req.profiles?.full_name || "—"}</p>
+                  <p className="text-sm font-medium text-foreground">{req.profiles?.full_name || req.profiles?.email || "—"}</p>
                   <p className="text-xs text-muted-foreground">{req.profiles?.email}</p>
                 </TableCell>
                 <TableCell>
