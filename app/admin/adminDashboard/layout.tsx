@@ -1,12 +1,20 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
   LayoutDashboard, CreditCard, FileUp,
   Menu, LogOut, ShieldAlert,
+  type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -15,13 +23,13 @@ import { cn } from "@/lib/utils"
 type NavItem = {
   href: string
   label: string
-  icon: React.ReactNode
+  icon: LucideIcon
 }
 
 const NAV: NavItem[] = [
-  { href: "/admin/adminDashboard",                label: "Overview",      icon: <LayoutDashboard className="h-4 w-4" /> },
-  { href: "/admin/adminDashboard/bank-transfers", label: "Bank Transfers", icon: <CreditCard className="h-4 w-4" /> },
-  { href: "/admin/adminDashboard/upload",         label: "Upload Paper",  icon: <FileUp className="h-4 w-4" /> },
+  { href: "/admin/adminDashboard",                label: "Overview",       icon: LayoutDashboard },
+  { href: "/admin/adminDashboard/bank-transfers", label: "Bank Transfers", icon: CreditCard },
+  { href: "/admin/adminDashboard/upload",         label: "Upload Paper",   icon: FileUp },
 ]
 
 // ─── Logo ─────────────────────────────────────────────────────────────────────
@@ -51,6 +59,7 @@ export default function AdminDashboardLayout({
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -62,13 +71,14 @@ export default function AdminDashboardLayout({
 
   // Exact match for overview, prefix match for sub-pages
   const isActive = (href: string) => {
-    if (href === "/admin/dashboard") return pathname === href
+    if (href === "/admin/adminDashboard") return pathname === href
     return pathname.startsWith(href)
   }
 
   const currentLabel = NAV.find((n) => isActive(n.href))?.label ?? "Dashboard"
 
   return (
+    <TooltipProvider delayDuration={200}>
     <div className="dark flex min-h-screen bg-background">
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -81,53 +91,95 @@ export default function AdminDashboardLayout({
       {/* ── Sidebar ── */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-border bg-card transition-transform duration-200 md:static md:translate-x-0",
+          "fixed inset-y-0 left-0 z-30 flex flex-col border-r border-border bg-card transition-all duration-200 md:static md:translate-x-0",
+          collapsed ? "w-[60px]" : "w-60",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Brand */}
-        <div className="flex h-14 items-center gap-2.5 border-b border-border px-5">
-          <StudyFlowLogo className="h-6 w-6" />
-          <div>
-            <p className="text-sm font-semibold text-foreground leading-tight">StudyFlow</p>
-            <div className="flex items-center gap-1 mt-0.5">
-              <ShieldAlert className="h-2.5 w-2.5 text-red-400" />
-              <p className="text-[10px] text-red-400 leading-tight font-medium">Admin</p>
+        <div className={cn(
+          "flex h-14 items-center border-b border-border",
+          collapsed ? "justify-center px-0" : "gap-2.5 px-5"
+        )}>
+          <StudyFlowLogo className="h-6 w-6 shrink-0" />
+          {!collapsed && (
+            <div>
+              <p className="text-sm font-semibold text-foreground leading-tight">StudyFlow</p>
+              <div className="flex items-center gap-1 mt-0.5">
+                <ShieldAlert className="h-2.5 w-2.5 text-red-400" />
+                <p className="text-[10px] text-red-400 leading-tight font-medium">Admin</p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 space-y-0.5 px-3 py-4">
-          {NAV.map((item) => (
-            <button
-              key={item.href}
-              onClick={() => {
-                router.push(item.href)
-                setSidebarOpen(false)
-              }}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
-                isActive(item.href)
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              )}
-            >
-              {item.icon}
-              {item.label}
-            </button>
-          ))}
+        <nav className={cn("flex-1 space-y-0.5 py-4", collapsed ? "px-1.5" : "px-3")}>
+          {NAV.map(({ href, label, icon: Icon }) => {
+            const active = isActive(href)
+            const btn = (
+              <Button
+                key={href}
+                variant={active ? "secondary" : "ghost"}
+                className={cn(
+                  "w-full justify-start gap-3 text-sm font-medium",
+                  collapsed && "justify-center px-0"
+                )}
+                asChild
+              >
+                <Link href={href} onClick={() => setSidebarOpen(false)}>
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {!collapsed && label}
+                </Link>
+              </Button>
+            )
+            return collapsed ? (
+              <Tooltip key={href}>
+                <TooltipTrigger asChild>{btn}</TooltipTrigger>
+                <TooltipContent side="right">{label}</TooltipContent>
+              </Tooltip>
+            ) : btn
+          })}
         </nav>
 
-        {/* Sign out */}
-        <div className="border-t border-border p-3">
-          <button
-            onClick={handleSignOut}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+        {/* Collapse toggle (desktop only) + Sign out */}
+        <div className={cn("border-t border-border p-3 space-y-0.5")}>
+          {/* Collapse toggle — hidden on mobile since sidebar is overlay */}
+          <Button
+            variant="ghost"
+            className={cn(
+              "hidden w-full text-sm font-medium text-muted-foreground md:flex",
+              collapsed ? "justify-center px-0" : "justify-start gap-3"
+            )}
+            onClick={() => setCollapsed((c) => !c)}
           >
-            <LogOut className="h-4 w-4" />
-            Sign out
-          </button>
+            <Menu className="h-4 w-4 shrink-0" />
+            {!collapsed && "Collapse"}
+          </Button>
+
+          {collapsed ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-center px-0 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="h-4 w-4 shrink-0" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Sign out</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              onClick={handleSignOut}
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              Sign out
+            </Button>
+          )}
         </div>
       </aside>
 
@@ -152,5 +204,6 @@ export default function AdminDashboardLayout({
         </main>
       </div>
     </div>
+    </TooltipProvider>
   )
 }
