@@ -32,6 +32,7 @@ export default function BankTransferPage() {
   const [loading, setLoading] = useState(false);
   const [refNumber, setRefNumber] = useState<string | null>(null);
   const [authError, setAuthError] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
@@ -80,7 +81,7 @@ export default function BankTransferPage() {
         .insert({
           user_id: user.id,
           reference_number: refNumber,
-          amount: 990.00,
+          amount: 1000.00,
           target_plan: "pro",
           slip_url: publicUrl,
           notes: notes || null,
@@ -184,8 +185,25 @@ export default function BankTransferPage() {
                   type="file"
                   accept="image/*,.pdf"
                   className="mt-1"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  onChange={(e) => {
+                    const selected = e.target.files?.[0] || null;
+                    if (selected && selected.size > 1 * 1024 * 1024) {
+                      setFileError("File size must be less than 1 MB.");
+                      setFile(null);
+                      e.target.value = "";
+                    } else {
+                      setFileError(null);
+                      setFile(selected);
+                    }
+                  }}
                 />
+                <p className="text-xs text-muted-foreground mt-1">Max file size: 1 MB</p>
+                {fileError && (
+                  <Alert variant="destructive" className="mt-2 py-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{fileError}</AlertDescription>
+                  </Alert>
+                )}
               </div>
               <div>
                 <Label>Notes (optional)</Label>
