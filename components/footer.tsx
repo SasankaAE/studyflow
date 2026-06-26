@@ -1,7 +1,7 @@
 // components/Footer.tsx
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { GitBranch, X, Mail } from "lucide-react"
+import { Mail } from "lucide-react"
 
 const footerLinks = {
   Product: [
@@ -51,27 +51,7 @@ export function Footer() {
             {/* Social Icons */}
             <div className="mt-4 flex gap-1">
               <Button variant="ghost" size="icon" asChild>
-                <Link
-                  href="https://github.com"
-                  target="_blank"
-                  aria-label="GitHub"
-                >
-                  <GitBranch className="h-4 w-4" />
-                </Link>
-              </Button>
-
-              <Button variant="ghost" size="icon" asChild>
-                <Link
-                  href="https://twitter.com"
-                  target="_blank"
-                  aria-label="Twitter"
-                >
-                  <X className="h-4 w-4" />
-                </Link>
-              </Button>
-
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="mailto:support@studyflow.com" aria-label="Email">
+                <Link href="mailto:sasankaakash22@gmail.com" aria-label="Email">
                   <Mail className="h-4 w-4" />
                 </Link>
               </Button>

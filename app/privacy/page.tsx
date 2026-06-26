@@ -139,7 +139,7 @@ const sections = [
     content: [
       {
         subtitle: "Questions or Concerns",
-        text: "If you have any questions about this Privacy Policy or how we handle your data, please reach out to us at privacy@studyflow.lk. We aim to respond within 3 business days.",
+        text: "If you have any questions about this Privacy Policy or how we handle your data, please reach out to us at sasankaakash22@gmail.com. We aim to respond within 3 business days.",
       },
     ],
   },
