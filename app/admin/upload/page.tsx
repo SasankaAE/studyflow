@@ -137,10 +137,8 @@ export default function UploadPdfPage() {
               <Select value={form.category} onValueChange={(v) => setForm((p) => ({ ...p, category: v }))}>
                 <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="NLP">NLP</SelectItem>
-                  <SelectItem value="CV">Computer Vision</SelectItem>
-                  <SelectItem value="LLM">LLMs</SelectItem>
-                  <SelectItem value="Safety">Safety</SelectItem>
+                  <SelectItem value="Grade 6 CS">Grade 6 CS</SelectItem>
+                  <SelectItem value="Grade 7 CS">Grade 7 CS</SelectItem>
                 </SelectContent>
               </Select>
             </div>

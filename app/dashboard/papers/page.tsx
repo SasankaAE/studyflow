@@ -9,14 +9,12 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { FileDown, Search, BookOpen, Calendar, User } from "lucide-react";
+import { FileDown, Search, BookOpen, Calendar } from "lucide-react";
 import { usePdfs } from "@/hooks/usePdfs";
 
 const categoryColors: Record<string, string> = {
-  NLP:    "bg-blue-500/10 text-blue-600 border-blue-200",
-  CV:     "bg-emerald-500/10 text-emerald-600 border-emerald-200",
-  LLM:    "bg-violet-500/10 text-violet-600 border-violet-200",
-  Safety: "bg-orange-500/10 text-orange-600 border-orange-200",
+  "Grade 6 CS": "bg-blue-500/10 text-blue-600 border-blue-200",
+  "Grade 7 CS": "bg-emerald-500/10 text-emerald-600 border-emerald-200",
 };
 
 export default function PapersPage() {
@@ -54,10 +52,8 @@ export default function PapersPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="NLP">NLP</SelectItem>
-            <SelectItem value="CV">Computer Vision</SelectItem>
-            <SelectItem value="LLM">LLMs</SelectItem>
-            <SelectItem value="Safety">Safety</SelectItem>
+            <SelectItem value="Grade 6 CS">Grade 6 CS</SelectItem>
+            <SelectItem value="Grade 7 CS">Grade 7 CS</SelectItem>
           </SelectContent>
         </Select>
       </div>
