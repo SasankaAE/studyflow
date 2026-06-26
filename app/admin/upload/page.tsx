@@ -12,9 +12,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Upload, FileText, X, CheckCircle2, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 
 export default function UploadPdfPage() {
   const { upload, uploading, error, success } = useUploadPdf()
+  const router = useRouter()
 
   const [file, setFile] = useState<File | null>(null)
   const [dragging, setDragging] = useState(false)
@@ -43,6 +45,7 @@ export default function UploadPdfPage() {
     setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }))
   }
 
+
   const handleSubmit = async () => {
     if (!file) return
     const ok = await upload(file, {
@@ -54,6 +57,7 @@ export default function UploadPdfPage() {
     if (ok) {
       setFile(null)
       setForm({ name: "", year: "", category: "" })
+      router.refresh()
     }
   }
 
