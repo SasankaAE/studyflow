@@ -19,9 +19,9 @@ type NavItem = {
 }
 
 const NAV: NavItem[] = [
-  { href: "/admin/dashboard",                label: "Overview",      icon: <LayoutDashboard className="h-4 w-4" /> },
-  { href: "/admin/dashboard/bank-transfers", label: "Bank Transfers", icon: <CreditCard className="h-4 w-4" /> },
-  { href: "/admin/dashboard/upload",         label: "Upload Paper",  icon: <FileUp className="h-4 w-4" /> },
+  { href: "/admin/adminDashboard",                label: "Overview",      icon: <LayoutDashboard className="h-4 w-4" /> },
+  { href: "/admin/adminDashboard/bank-transfers", label: "Bank Transfers", icon: <CreditCard className="h-4 w-4" /> },
+  { href: "/admin/adminDashboard/upload",         label: "Upload Paper",  icon: <FileUp className="h-4 w-4" /> },
 ]
 
 // ─── Logo ─────────────────────────────────────────────────────────────────────
