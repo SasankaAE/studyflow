@@ -52,13 +52,13 @@ export default function AdminOverviewPage() {
 
   const quickActions = [
     {
-      href: "/admin/dashboard/bank-transfers",
+      href: "/admin/adminDashboard/bank-transfers",
       icon: <CreditCard className="h-4 w-4" />,
       title: "Review transfers",
       desc: "Approve or reject payment requests",
     },
     {
-      href: "/admin/dashboard/upload",
+      href: "/admin/adminDashboard/upload",
       icon: <FileUp className="h-4 w-4" />,
       title: "Upload paper",
       desc: "Add a new PDF to the library",
