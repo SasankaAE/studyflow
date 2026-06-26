@@ -172,7 +172,7 @@ export default function OverviewPage() {
           <Button
             size="sm"
             className="w-full sm:w-auto"
-            onClick={() => router.push("/components/price.tsx")}
+            onClick={() => router.push("/pricing")}
           >
             Upgrade to Pro
           </Button>
