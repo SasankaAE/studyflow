@@ -16,7 +16,7 @@ import Link from "next/link";
 const plans = [
   {
     name: "Free",
-    price: "$0",
+    price: "LKR 0",
     period: "forever",
     description: "Perfect for individuals getting started.",
     badge: null,
@@ -34,7 +34,7 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "LKR 990",
+    price: "LKR 1000",
     period: "per month",
     description: "For students who need more power.",
     badge: "Most Popular",
@@ -163,7 +163,7 @@ export function PricingSection() {
                   >
                     <Link href="/upgrade/bank-transfer">
                       <Landmark className="h-4 w-4" />
-                      Bank Transfer (LKR 990)
+                      Bank Transfer (LKR 1000)
                     </Link>
                   </Button>
                   <p className="text-center text-xs text-muted-foreground">

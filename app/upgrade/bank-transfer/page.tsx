@@ -9,15 +9,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Copy, CheckCircle, Upload, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const BANK_DETAILS = {
-  bankName: "Bank of Ceylon",
-  accountName: "StudyFlow (Pvt) Ltd",
-  accountNumber: "1234567890",
-  branch: "Colombo Main Branch",
-  amount: "LKR 990.00",
+  bankName: "HNB",
+  accountName: "EDIRISOORIYA E A S A",
+  accountNumber: "025020469088",
+  branch: "Nittabuwa Branch",
+  amount: "LKR 1000.00",
 };
 
 export default function BankTransferPage() {
@@ -30,6 +31,7 @@ export default function BankTransferPage() {
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [refNumber, setRefNumber] = useState<string | null>(null);
+  const [authError, setAuthError] = useState(false);
 
   const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
@@ -39,7 +41,11 @@ export default function BankTransferPage() {
 
   const handleProceedToUpload = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { toast.error("Not logged in"); return; }
+    if (!user) {
+      setAuthError(true);
+      return;
+    }
+    setAuthError(false);
     const ref = generateReferenceNumber(user.id);
     setRefNumber(ref);
     setStep("upload");
@@ -154,7 +160,7 @@ export default function BankTransferPage() {
             ))}
             <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded p-3 flex gap-2 text-xs text-yellow-800 dark:text-yellow-300">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>Transfer exactly <strong>LKR 990.00</strong>. Include your email in the transfer remarks.</span>
+              <span>Transfer exactly <strong>LKR 1000.00</strong>. Include your email in the transfer remarks.</span>
             </div>
           </CardContent>
         </Card>
@@ -200,9 +206,23 @@ export default function BankTransferPage() {
         )}
 
         {step === "details" && (
-          <Button onClick={handleProceedToUpload} className="w-full">
-            I've Made the Transfer → Upload Slip
-          </Button>
+          <div className="space-y-3">
+            {authError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  You're not logged in. Please{" "}
+                  <a href="/login" className="underline font-medium">
+                    sign in
+                  </a>{" "}
+                  to proceed with the payment.
+                </AlertDescription>
+              </Alert>
+            )}
+            <Button onClick={handleProceedToUpload} className="w-full">
+              I've Made the Transfer → Upload Slip
+            </Button>
+          </div>
         )}
       </div>
     </div>
