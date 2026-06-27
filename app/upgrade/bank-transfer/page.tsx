@@ -105,7 +105,7 @@ export default function BankTransferPage() {
             <h2 className="text-xl font-semibold">Request Submitted!</h2>
             <p className="text-muted-foreground text-sm">
               Your payment proof has been received. We'll verify and upgrade your plan
-              within <strong>1–2 business days</strong>.
+              within <strong>a few hours</strong>.
             </p>
             <Badge variant="outline" className="font-mono text-xs">{refNumber}</Badge>
             <p className="text-xs text-muted-foreground">Keep this reference number for your records.</p>

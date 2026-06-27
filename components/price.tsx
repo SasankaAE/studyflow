@@ -167,7 +167,7 @@ export function PricingSection() {
                     </Link>
                   </Button>
                   <p className="text-center text-xs text-muted-foreground">
-                    Manual verification · activated within 1–2 business days
+                    Manual verification · usually activated within a few hours
                   </p>
                 </>
               )}

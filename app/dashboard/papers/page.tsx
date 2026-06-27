@@ -48,15 +48,15 @@ export default function PapersPage() {
       </AlertDialog>
 
       <div>
-        <h2 className="text-lg font-semibold">Research Papers</h2>
-        <p className="text-sm text-muted-foreground">Browse and download curated AI/ML research papers.</p>
+        <h2 className="text-lg font-semibold">Past Papers</h2>
+        <p className="text-sm text-muted-foreground">Browse and download past papers by grade and subject.</p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search papers or authors…"
+            placeholder="Search papers…"
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
