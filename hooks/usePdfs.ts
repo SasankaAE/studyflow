@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import { toast } from "sonner"
 
 type Pdf = {
   id: string
@@ -32,7 +33,9 @@ export function usePdfs() {
     const data = await res.json()
 
     if (!res.ok) {
-      alert(data.error)
+      toast.error(data.error, {
+      description: res.status === 403 ? "Upgrade to Pro for more downloads." : undefined,
+    })
       return
     }
 

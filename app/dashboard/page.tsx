@@ -273,7 +273,7 @@ export default function OverviewPage() {
               variant="outline"
               size="sm"
               className="w-full"
-              onClick={() => router.push("/dashboard/settings")}
+              onClick={() => router.push("/pricing")}
             >
               Upgrade to Pro
             </Button>
