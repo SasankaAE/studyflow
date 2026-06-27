@@ -13,15 +13,22 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async () => {
-    setLoading(true)
-    const res = await fetch("/api/auth/forgot-password", {
-      method: "POST",
-      body: JSON.stringify({ email }),
-      headers: { "Content-Type": "application/json" },
-    })
-    setLoading(false)
-    if (res.ok) setSent(true)
+  setLoading(true)
+  const res = await fetch("/api/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+    headers: { "Content-Type": "application/json" },
+  })
+  const data = await res.json()
+  setLoading(false)
+
+  if (!res.ok) {
+    alert(data.error) // ← shows exact Supabase error
+    return
   }
+
+  setSent(true)
+}
 
   if (sent) {
     return (
