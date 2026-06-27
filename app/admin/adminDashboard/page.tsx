@@ -6,6 +6,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import {
   LayoutDashboard, CreditCard, FileUp,
   Users, TrendingUp, Clock,
+  FileText,
+  DollarSign,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -16,7 +18,10 @@ export default function AdminOverviewPage() {
   const [stats, setStats] = useState({
     totalUsers: 0,
     proUsers: 0,
+    freeUsers: 0,
     pendingTransfers: 0,
+    totalPapers: 0,
+    totalAmount: 0,
     loading: true,
   })
 
@@ -29,26 +34,44 @@ export default function AdminOverviewPage() {
     load()
   }, [])
 
-  const cards = [
-    {
-      label: "Total users",
-      value: stats.totalUsers,
-      icon: <Users className="h-4 w-4" />,
-      badgeClass: "bg-blue-500/10 text-blue-400",
-    },
-    {
-      label: "Pro subscribers",
-      value: stats.proUsers,
-      icon: <TrendingUp className="h-4 w-4" />,
-      badgeClass: "bg-emerald-500/10 text-emerald-400",
-    },
-    {
-      label: "Pending transfers",
-      value: stats.pendingTransfers,
-      icon: <Clock className="h-4 w-4" />,
-      badgeClass: "bg-amber-500/10 text-amber-400",
-    },
-  ]
+const cards = [
+  {
+    label: "Total users",
+    value: stats.totalUsers,
+    icon: <Users className="h-4 w-4" />,
+    badgeClass: "bg-blue-500/10 text-blue-400",
+  },
+  {
+    label: "Pro subscribers",
+    value: stats.proUsers,
+    icon: <TrendingUp className="h-4 w-4" />,
+    badgeClass: "bg-emerald-500/10 text-emerald-400",
+  },
+  {
+    label: "Free users",
+    value: stats.freeUsers,
+    icon: <Users className="h-4 w-4" />,
+    badgeClass: "bg-slate-500/10 text-slate-400",
+  },
+  {
+    label: "Pending transfers",
+    value: stats.pendingTransfers,
+    icon: <Clock className="h-4 w-4" />,
+    badgeClass: "bg-amber-500/10 text-amber-400",
+  },
+  {
+    label: "Total papers",
+    value: stats.totalPapers,
+    icon: <FileText className="h-4 w-4" />,
+    badgeClass: "bg-purple-500/10 text-purple-400",
+  },
+  {
+    label: "Total amount",
+    value: `LKR ${stats.totalAmount.toLocaleString()}`,
+    icon: <DollarSign className="h-4 w-4" />,
+    badgeClass: "bg-green-500/10 text-green-400",
+  },
+]
 
   const quickActions = [
     {
