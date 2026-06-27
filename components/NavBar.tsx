@@ -136,7 +136,7 @@ export function Navbar() {
           ) : (
             <>
               <Button variant="ghost" asChild>
-                <Link href="/login">Log in</Link>
+                <Link href="/login">Sign in</Link>
               </Button>
               <Button asChild>
                 <Link href="/signup">Sign up</Link>
@@ -213,7 +213,7 @@ export function Navbar() {
                 ) : (
                   <>
                     <Button variant="outline" asChild>
-                      <Link href="/login" onClick={() => setOpen(false)}>Log in</Link>
+                      <Link href="/login" onClick={() => setOpen(false)}>Sign in</Link>
                     </Button>
                     <Button asChild>
                       <Link href="/signup" onClick={() => setOpen(false)}>Sign up</Link>
