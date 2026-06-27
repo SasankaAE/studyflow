@@ -9,6 +9,8 @@ export async function POST(req: NextRequest) {
     redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password`,
   })
 
+  console.log("reset error:", error?.message) // check Vercel logs
+
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   return NextResponse.json({ success: true })
 }
