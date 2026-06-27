@@ -33,10 +33,7 @@ export function usePdfs() {
     const data = await res.json()
 
     if (!res.ok) {
-      toast.error(data.error, {
-        description:
-          res.status === 403 ? "Upgrade to Pro for more downloads." : undefined,
-      })
+      alert(data.error)
       return
     }
 
