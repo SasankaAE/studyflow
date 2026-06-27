@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Send, Sparkles, RotateCcw, Square } from "lucide-react"
+import { Send, Sparkles, RotateCcw, Square, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   useOpenRouter,
@@ -13,6 +13,18 @@ import {
   OpenRouterConfig,
 } from "@/hooks/useOpenRouter"
 import { MarkdownMessage } from "@/components/chat/markdown-message"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { checkUsage } from "@/lib/usage" // adjust path if needed
+import { useRouter } from "next/navigation"
 
 const suggestions = [
   "Summarize a research paper",
@@ -22,10 +34,10 @@ const suggestions = [
 ]
 
 export default function ChatPage() {
+  const router = useRouter()
   const [config, setConfig] = useState<OpenRouterConfig>(DEFAULT_CONFIG)
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  // Plain div ref — we scroll this ourselves, not ScrollArea
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const {
@@ -38,6 +50,12 @@ export default function ChatPage() {
   } = useOpenRouter(config)
 
   const [input, setInput] = useState("")
+  const [limitDialog, setLimitDialog] = useState<{
+    open: boolean
+    used: number
+    limit: number
+    plan: string
+  }>({ open: false, used: 0, limit: 0, plan: "free" })
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -52,13 +70,80 @@ export default function ChatPage() {
 
   const handleSend = async (text: string) => {
     if (!text.trim() || isLoading) return
+
+    // Check usage before sending
+    const usage = await checkUsage("chat")
+    if (!usage.allowed) {
+      setLimitDialog({
+        open: true,
+        used: usage.used ?? 0,
+        limit: usage.limit ?? 0,
+        plan: usage.reason?.includes("pro") ? "pro" : "free",
+      })
+      return
+    }
+
     setInput("")
     await sendMessage(text.trim())
   }
 
   return (
-    // overflow-hidden on root prevents ANY horizontal scroll on the page
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
+
+      {/* Limit reached dialog */}
+      <AlertDialog
+        open={limitDialog.open}
+        onOpenChange={(open) => setLimitDialog((prev) => ({ ...prev, open }))}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-yellow-500" />
+              Monthly limit reached
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  You've used{" "}
+                  <span className="font-semibold text-foreground">
+                    {limitDialog.used} / {limitDialog.limit}
+                  </span>{" "}
+                  chats this month on your{" "}
+                  <span className="font-semibold text-foreground capitalize">
+                    {limitDialog.plan}
+                  </span>{" "}
+                  plan.
+                </p>
+                <div className="w-full rounded-full bg-muted h-2 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-yellow-500 transition-all"
+                    style={{
+                      width: `${Math.min(
+                        (limitDialog.used / limitDialog.limit) * 100,
+                        100
+                      )}%`,
+                    }}
+                  />
+                </div>
+                <p>
+                  Upgrade to <span className="font-semibold text-foreground">Pro</span> for
+                  unlimited chats and access to premium features.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Maybe later</AlertDialogCancel>
+            <AlertDialogAction
+              className="gap-2"
+              onClick={() => router.push("/pricing")}
+            >
+              <Zap className="h-4 w-4" />
+              Upgrade to Pro
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Header */}
       <div className="flex w-full shrink-0 items-center border-b border-border bg-background px-3 py-2 sm:px-4">
@@ -67,10 +152,7 @@ export default function ChatPage() {
         </span>
       </div>
 
-      {/* Messages
-          — plain div instead of shadcn ScrollArea
-          — overflow-y-auto + overflow-x-hidden is the critical fix
-          — w-full + min-w-0 prevents it from growing wider than parent */}
+      {/* Messages */}
       <div
         ref={scrollRef}
         className="min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto"
@@ -106,7 +188,6 @@ export default function ChatPage() {
                 <div
                   key={i}
                   className={cn(
-                    // w-full + min-w-0 makes the row shrink to fit; never wider than container
                     "flex w-full min-w-0 gap-2 sm:gap-3",
                     msg.role === "user" && "flex-row-reverse"
                   )}
@@ -116,11 +197,6 @@ export default function ChatPage() {
                       {msg.role === "user" ? "U" : "AI"}
                     </AvatarFallback>
                   </Avatar>
-
-                  {/* Bubble:
-                      - flex-1 min-w-0: fills remaining space, allows shrinking below content size
-                      - overflow-hidden: clips anything that escapes
-                      - NO percentage max-width: percentages on flex children are unreliable on mobile */}
                   <div
                     className={cn(
                       "flex-1 min-w-0 overflow-hidden rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:px-4 sm:py-3",
@@ -128,7 +204,6 @@ export default function ChatPage() {
                         ? "rounded-tr-sm bg-primary text-primary-foreground"
                         : "rounded-tl-sm bg-muted text-foreground"
                     )}
-                    // Cap width so user bubbles don't span 100%
                     style={{ maxWidth: "calc(100% - 36px)" }}
                   >
                     {msg.content ? (
@@ -163,24 +238,22 @@ export default function ChatPage() {
                 </div>
               ))}
 
-              {/* Standalone loading bubble */}
-              {isLoading &&
-                messages[messages.length - 1]?.role !== "assistant" && (
-                  <div className="flex gap-2 sm:gap-3">
-                    <Avatar className="h-7 w-7 shrink-0 sm:h-8 sm:w-8">
-                      <AvatarFallback className="text-xs">AI</AvatarFallback>
-                    </Avatar>
-                    <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-muted px-3.5 py-2.5 sm:px-4 sm:py-3">
-                      {[0, 1, 2].map((i) => (
-                        <span
-                          key={i}
-                          className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground"
-                          style={{ animationDelay: `${i * 150}ms` }}
-                        />
-                      ))}
-                    </div>
+              {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
+                <div className="flex gap-2 sm:gap-3">
+                  <Avatar className="h-7 w-7 shrink-0 sm:h-8 sm:w-8">
+                    <AvatarFallback className="text-xs">AI</AvatarFallback>
+                  </Avatar>
+                  <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-muted px-3.5 py-2.5 sm:px-4 sm:py-3">
+                    {[0, 1, 2].map((i) => (
+                      <span
+                        key={i}
+                        className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground"
+                        style={{ animationDelay: `${i * 150}ms` }}
+                      />
+                    ))}
                   </div>
-                )}
+                </div>
+              )}
 
               {error && (
                 <p className="rounded-lg bg-destructive/10 px-4 py-2 text-center text-xs text-destructive">
@@ -214,7 +287,6 @@ export default function ChatPage() {
           <Textarea
             ref={textareaRef}
             placeholder="Ask anything…"
-            // text-base = 16px — prevents iOS Safari from zooming on focus
             className="max-h-32 min-h-[44px] flex-1 resize-none text-base sm:text-sm"
             rows={1}
             value={input}
