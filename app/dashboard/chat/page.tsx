@@ -71,8 +71,9 @@ export default function ChatPage() {
   const handleSend = async (text: string) => {
     if (!text.trim() || isLoading) return
 
-    // Check usage before sending
-    const usage = await checkUsage("chat")
+    const res = await fetch("/api/usage?type=chat")
+    const usage = await res.json()
+
     if (!usage.allowed) {
       setLimitDialog({
         open: true,
@@ -89,7 +90,6 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
-
       {/* Limit reached dialog */}
       <AlertDialog
         open={limitDialog.open}
@@ -114,7 +114,7 @@ export default function ChatPage() {
                   </span>{" "}
                   plan.
                 </p>
-                <div className="w-full rounded-full bg-muted h-2 overflow-hidden">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full rounded-full bg-yellow-500 transition-all"
                     style={{
@@ -126,7 +126,8 @@ export default function ChatPage() {
                   />
                 </div>
                 <p>
-                  Upgrade to <span className="font-semibold text-foreground">Pro</span> for
+                  Upgrade to{" "}
+                  <span className="font-semibold text-foreground">Pro</span> for
                   unlimited chats and access to premium features.
                 </p>
               </div>
@@ -199,7 +200,7 @@ export default function ChatPage() {
                   </Avatar>
                   <div
                     className={cn(
-                      "flex-1 min-w-0 overflow-hidden rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:px-4 sm:py-3",
+                      "min-w-0 flex-1 overflow-hidden rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:px-4 sm:py-3",
                       msg.role === "user"
                         ? "rounded-tr-sm bg-primary text-primary-foreground"
                         : "rounded-tl-sm bg-muted text-foreground"
@@ -238,22 +239,23 @@ export default function ChatPage() {
                 </div>
               ))}
 
-              {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
-                <div className="flex gap-2 sm:gap-3">
-                  <Avatar className="h-7 w-7 shrink-0 sm:h-8 sm:w-8">
-                    <AvatarFallback className="text-xs">AI</AvatarFallback>
-                  </Avatar>
-                  <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-muted px-3.5 py-2.5 sm:px-4 sm:py-3">
-                    {[0, 1, 2].map((i) => (
-                      <span
-                        key={i}
-                        className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground"
-                        style={{ animationDelay: `${i * 150}ms` }}
-                      />
-                    ))}
+              {isLoading &&
+                messages[messages.length - 1]?.role !== "assistant" && (
+                  <div className="flex gap-2 sm:gap-3">
+                    <Avatar className="h-7 w-7 shrink-0 sm:h-8 sm:w-8">
+                      <AvatarFallback className="text-xs">AI</AvatarFallback>
+                    </Avatar>
+                    <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-muted px-3.5 py-2.5 sm:px-4 sm:py-3">
+                      {[0, 1, 2].map((i) => (
+                        <span
+                          key={i}
+                          className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground"
+                          style={{ animationDelay: `${i * 150}ms` }}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {error && (
                 <p className="rounded-lg bg-destructive/10 px-4 py-2 text-center text-xs text-destructive">
