@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { toast } from "sonner"
 
 type Pdf = {
   id: string
@@ -15,6 +14,7 @@ type Pdf = {
 export function usePdfs() {
   const [pdfs, setPdfs] = useState<Pdf[]>([])
   const [loading, setLoading] = useState(true)
+  const [limitError, setLimitError] = useState<string | null>(null)
 
   const fetchPdfs = useCallback(() => {
     setLoading(true)
@@ -28,12 +28,17 @@ export function usePdfs() {
     fetchPdfs()
   }, [fetchPdfs])
 
+
   const download = async (id: string, name: string) => {
     const res = await fetch(`/api/pdfs/download/${id}`)
     const data = await res.json()
 
     if (!res.ok) {
-      alert(data.error)
+      if (res.status === 403) {
+        setLimitError(data.error)
+      } else {
+        setLimitError(data.error)
+      }
       return
     }
 
@@ -43,5 +48,6 @@ export function usePdfs() {
     a.click()
   }
 
-  return { pdfs, loading, download, refetch: fetchPdfs }
+  return { pdfs, loading, download, refetch: fetchPdfs, limitError, setLimitError }
 }
+

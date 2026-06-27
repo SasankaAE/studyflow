@@ -9,6 +9,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { FileDown, Search, BookOpen, Calendar } from "lucide-react";
 import { usePdfs } from "@/hooks/usePdfs";
 
@@ -20,7 +24,7 @@ const categoryColors: Record<string, string> = {
 export default function PapersPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
-  const { pdfs, loading, download } = usePdfs();
+  const { pdfs, loading, download, limitError, setLimitError } = usePdfs();
 
   const filtered = pdfs.filter((p) => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
@@ -30,12 +34,24 @@ export default function PapersPage() {
 
   return (
     <div className="p-6 space-y-6">
+
+      <AlertDialog open={!!limitError} onOpenChange={(open) => !open && setLimitError(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Download Limit Reached</AlertDialogTitle>
+            <AlertDialogDescription>{limitError}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setLimitError(null)}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div>
         <h2 className="text-lg font-semibold">Research Papers</h2>
         <p className="text-sm text-muted-foreground">Browse and download curated AI/ML research papers.</p>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -89,7 +105,9 @@ export default function PapersPage() {
                 </div>
                 <CardDescription className="flex items-center gap-3 text-xs mt-1">
                   {paper.year && (
-                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{paper.year}</span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />{paper.year}
+                    </span>
                   )}
                 </CardDescription>
               </CardHeader>
