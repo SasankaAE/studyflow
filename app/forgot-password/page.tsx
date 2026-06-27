@@ -4,35 +4,51 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import Link from "next/link"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async () => {
-  setLoading(true)
-  const res = await fetch("/api/auth/forgot-password", {
-    method: "POST",
-    body: JSON.stringify({ email }),
-    headers: { "Content-Type": "application/json" },
-  })
-  const data = await res.json()
-  setLoading(false)
+    setLoading(true)
+    const res = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+      headers: { "Content-Type": "application/json" },
+    })
+    const data = await res.json()
+    setLoading(false)
 
-  if (!res.ok) {
-    alert(data.error) // ← shows exact Supabase error
-    return
+    if (!res.ok) {
+      setError(data.error)
+      return
+    }
+
+    setSent(true)
   }
-
-  setSent(true)
-}
 
   if (sent) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center p-4">
         <Card className="w-full max-w-sm text-center">
           <CardHeader>
             <CardTitle>Check your email</CardTitle>
@@ -41,7 +57,10 @@ export default function ForgotPasswordPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/login" className="text-sm text-primary hover:underline">
+            <Link
+              href="/login"
+              className="text-sm text-primary hover:underline"
+            >
               Back to login
             </Link>
           </CardContent>
@@ -51,11 +70,29 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <AlertDialog
+        open={!!error}
+        onOpenChange={(open) => !open && setError(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Something went wrong</AlertDialogTitle>
+            <AlertDialogDescription>{error}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setError(null)}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Forgot password</CardTitle>
-          <CardDescription>Enter your email and we'll send you a reset link.</CardDescription>
+          <CardDescription>
+            Enter your email and we'll send you a reset link.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -68,13 +105,17 @@ export default function ForgotPasswordPage() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <Button className="w-full" onClick={handleSubmit} disabled={loading || !email}>
+          <Button
+            className="w-full"
+            onClick={handleSubmit}
+            disabled={loading || !email}
+          >
             {loading ? "Sending…" : "Send reset link"}
           </Button>
           <p className="text-center text-xs text-muted-foreground">
             Remember your password?{" "}
             <Link href="/login" className="text-primary hover:underline">
-              Sign In 
+              Sign In
             </Link>
           </p>
         </CardContent>
