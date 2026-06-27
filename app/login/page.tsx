@@ -184,7 +184,7 @@ export default function LoginPage() {
           )}
 
           <Button className="w-full" size="lg" onClick={handleSubmit} disabled={loading}>
-            {loading ? "Logging in..." : "Log in"}
+            {loading ? "Signing..." : "Sign in"}
           </Button>
         </CardContent>
 
