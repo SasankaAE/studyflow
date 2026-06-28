@@ -51,7 +51,7 @@ export function Footer() {
             {/* Social Icons */}
             <div className="mt-4 flex gap-1">
               <Button variant="ghost" size="icon" asChild>
-                <Link href="mailto:sasankaakash22@gmail.com" aria-label="Email">
+                <Link href="mailto:studyflow.aismart@gmail.com" aria-label="Email">
                   <Mail className="h-4 w-4" />
                 </Link>
               </Button>

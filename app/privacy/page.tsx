@@ -235,10 +235,10 @@ export default function PrivacyPolicyPage() {
                 not agree, please discontinue use of the platform. For any
                 questions, email us at{" "}
                 <a
-                  href="mailto:sasankaakash22@gmail.com"
+                  href="mailto:studyflow.aismart@gmail.com"
                   className="text-primary underline underline-offset-4 hover:no-underline"
                 >
-                  sasankaakash22@gmail.com
+                  studyflow.aismart@gmail.com
                 </a>
                 .
               </p>

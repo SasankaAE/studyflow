@@ -220,10 +220,10 @@ export default function CookiePolicyPage() {
                 If you have any questions about how StudyFlow uses cookies,
                 email us at{" "}
                 <a
-                  href="mailto:sasankaakash22@gmail.com"
+                  href="mailto:studyflow.aismart@gmail.com"
                   className="text-primary underline underline-offset-4 hover:opacity-80"
                 >
-                  sasankaakash22@gmail.com
+                  studyflow.aismart@gmail.com
                 </a>
                 . We&apos;ll respond within 2 business days.
               </p>

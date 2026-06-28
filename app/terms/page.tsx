@@ -16,7 +16,7 @@ import Link from "next/link";
 
 const LAST_UPDATED = "June 17, 2025";
 const EFFECTIVE_DATE = "June 17, 2025";
-const CONTACT_EMAIL = "sasankaakash22@gmail.com";
+const CONTACT_EMAIL = "studyflow.aismart@gmail.com";
 const COMPANY_NAME = "StudyFlow";
 
 interface Section {
