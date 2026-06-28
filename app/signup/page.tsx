@@ -153,7 +153,7 @@ export default function SignupPage() {
             <p className="text-sm text-muted-foreground">
               Already have an account?{" "}
               <Link href="/login" className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary">
-                Log in
+                Sign in
               </Link>
             </p>
           </CardFooter>
