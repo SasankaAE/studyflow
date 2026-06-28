@@ -12,7 +12,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Check, Zap, Landmark } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/server";
 
 const plans = [
   {

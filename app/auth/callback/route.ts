@@ -5,6 +5,7 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
   const next = searchParams.get("next") ?? "/dashboard"
+  const plan = searchParams.get("plan") // ← grab plan param
 
   if (code) {
     const supabase = await createClient()
@@ -22,6 +23,11 @@ export async function GET(request: Request) {
         // New user via login page — sign out and redirect to signup
         await supabase.auth.signOut()
         return NextResponse.redirect(`${origin}/signup?error=no_account`)
+      }
+
+      // ↓ Existing user — check if they came from ?plan=pro
+      if (plan === "pro") {
+        return NextResponse.redirect(`${origin}/upgrade/bank-transfer`)
       }
 
       return NextResponse.redirect(`${origin}${next}`)

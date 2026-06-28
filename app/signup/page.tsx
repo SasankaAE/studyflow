@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation" // ← add
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,6 +14,8 @@ import { CheckCircle2 } from "lucide-react"
 
 export default function SignupPage() {
   const supabase = createClient()
+  const searchParams = useSearchParams()           // ← add
+  const plan = searchParams.get("plan") ?? ""     // ← add
 
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", password: "" })
   const [error, setError] = useState<string | null>(null)
@@ -40,7 +43,7 @@ export default function SignupPage() {
       password: form.password,
       options: {
         data: { full_name: `${form.firstName} ${form.lastName}` },
-        emailRedirectTo: `${location.origin}/auth/callback`,
+        emailRedirectTo: `${location.origin}/auth/callback${plan ? `?plan=${plan}` : ""}`, // ← changed
       },
     })
     setLoading(false)
@@ -89,6 +92,12 @@ export default function SignupPage() {
                     Click the link in the email to activate your account.
                   </p>
                 </div>
+                {/* ↓ hint when signing up for pro */}
+                {plan === "pro" && (
+                  <p className="text-xs text-primary font-medium">
+                    After confirming, you'll be taken to the bank transfer page to activate Pro.
+                  </p>
+                )}
                 <p className="text-xs text-muted-foreground">
                   Didn't receive it? Check your spam folder or{" "}
                   <button
