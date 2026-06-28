@@ -12,6 +12,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Check, Zap, Landmark } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 const plans = [
   {
@@ -53,7 +54,14 @@ const plans = [
   },
 ];
 
-export function PricingSection() {
+export async function PricingSection() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const isLoggedIn = !!user;
+
   return (
     <section id="pricing" className="relative px-6 py-24 md:py-32">
       {/* Background glow */}
@@ -138,21 +146,35 @@ export function PricingSection() {
             </CardContent>
 
             <CardFooter className="flex flex-col gap-3 pt-6">
-              <Button
-                variant={plan.variant}
-                size="lg"
-                className="w-full text-base"
-                asChild
-              >
-                <Link href={plan.href}>{plan.cta}</Link>
-              </Button>
-
-              {/* Bank Transfer option — Pro only */}
-              {plan.highlight && (
+              {plan.highlight ? (
                 <>
+                  {/* "Get started with Pro" — disabled when logged in */}
+                  {isLoggedIn ? (
+                    <Button
+                      variant={plan.variant}
+                      size="lg"
+                      className="w-full text-base opacity-40 cursor-not-allowed"
+                      disabled
+                    >
+                      {plan.cta}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant={plan.variant}
+                      size="lg"
+                      className="w-full text-base"
+                      asChild
+                    >
+                      <Link href={plan.href}>{plan.cta}</Link>
+                    </Button>
+                  )}
+
+                  {/* Bank Transfer — always shown for Pro */}
                   <div className="flex items-center gap-2 w-full">
                     <Separator className="flex-1" />
-                    <span className="text-xs text-muted-foreground shrink-0">or pay via</span>
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      {isLoggedIn ? "upgrade via" : "or pay via"}
+                    </span>
                     <Separator className="flex-1" />
                   </div>
                   <Button
@@ -170,6 +192,16 @@ export function PricingSection() {
                     Manual verification · usually activated within a few hours
                   </p>
                 </>
+              ) : (
+                /* Free plan CTA — unchanged */
+                <Button
+                  variant={plan.variant}
+                  size="lg"
+                  className="w-full text-base"
+                  asChild
+                >
+                  <Link href={plan.href}>{plan.cta}</Link>
+                </Button>
               )}
             </CardFooter>
           </Card>
