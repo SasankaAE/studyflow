@@ -74,7 +74,7 @@ export function FAQSection() {
             Frequently asked questions
           </h2>
           <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Everything you need to know about MyApp. Can't find an answer?{" "}
+            Everything you need to know about StudyFlow. Can't find an answer?{" "}
             <a
               href="/contact"
               className="text-primary underline underline-offset-4 transition-colors hover:text-primary/80"
